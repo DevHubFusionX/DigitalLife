@@ -17,7 +17,6 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
   const location = useLocation();
 
   // Smart navbar state
-  const [prevScrollPos, setPrevScrollPos] = useState(0);
   const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
@@ -46,32 +45,42 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollPos = window.scrollY;
-      
-      // Determine if navbar is scrolled past threshold (50px)
-      setScrolled(currentScrollPos > 50);
+    let lastScrollPos = window.scrollY;
+    let ticking = false;
 
-      // Smart hide on scroll down, show on scroll up
-      // Always show at the top of the page (within 100px)
-      if (currentScrollPos < 100) {
-        setVisible(true);
-      } else {
-        const isScrollingUp = prevScrollPos > currentScrollPos;
-        // Don't hide if mobile menu is open
-        if (isOpen) {
-          setVisible(true);
-        } else {
-          setVisible(isScrollingUp);
-        }
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollPos = window.scrollY;
+          
+          // Determine if navbar is scrolled past threshold (50px)
+          const shouldBeScrolled = currentScrollPos > 50;
+          setScrolled((prev) => prev !== shouldBeScrolled ? shouldBeScrolled : prev);
+
+          // Smart hide on scroll down, show on scroll up
+          // Always show at the top of the page (within 100px)
+          if (currentScrollPos < 100) {
+            setVisible(true);
+          } else {
+            const isScrollingUp = lastScrollPos > currentScrollPos;
+            // Don't hide if mobile menu is open
+            if (isOpen) {
+              setVisible(true);
+            } else {
+              setVisible(isScrollingUp);
+            }
+          }
+          
+          lastScrollPos = currentScrollPos;
+          ticking = false;
+        });
+        ticking = true;
       }
-      
-      setPrevScrollPos(currentScrollPos);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [prevScrollPos, isOpen]);
+  }, [isOpen]);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -89,8 +98,8 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled 
-          ? 'bg-[#fffdf5]/85 backdrop-blur-xl border-b border-black/5 shadow-sm py-2' 
-          : 'bg-[#fffdf5]/95 backdrop-blur-md border-b border-black/5 py-4'
+          ? 'bg-[#fffdf5]/98 md:bg-[#fffdf5]/85 md:backdrop-blur-xl border-b border-black/5 shadow-sm py-2' 
+          : 'bg-[#fffdf5]/98 md:bg-[#fffdf5]/95 md:backdrop-blur-md border-b border-black/5 py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">

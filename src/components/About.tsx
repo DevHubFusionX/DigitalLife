@@ -242,7 +242,7 @@ export default function About({ onOpenBooking }: AboutProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 whileHover={{ y: -4 }}
-                className="bg-white/60 border border-black/5 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-sm relative group transition-all duration-300 flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center"
+                className="bg-white md:bg-white/60 border border-black/5 rounded-3xl p-6 md:p-8 md:backdrop-blur-md shadow-sm relative group transition-all duration-300 flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center"
               >
                 {/* Text Side */}
                 <div className="flex-1">

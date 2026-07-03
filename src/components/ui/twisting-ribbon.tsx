@@ -102,6 +102,7 @@ export function TwistingRibbon({
     const EDGE_WEIGHT = 0.5;
 
     let t = 0;
+    let isIntersecting = false;
 
     function resize() {
       if (!container || !canvas || !ctx) return;
@@ -292,6 +293,8 @@ export function TwistingRibbon({
 
     function render() {
       if (!ctx || !canvas) return;
+      if (!isIntersecting) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       t += waveSpeed;
 
@@ -308,10 +311,22 @@ export function TwistingRibbon({
       animationFrameId = requestAnimationFrame(render);
     }
 
-    render();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasIntersecting = isIntersecting;
+        isIntersecting = entry.isIntersecting;
+        if (isIntersecting && !wasIntersecting) {
+          cancelAnimationFrame(animationFrameId);
+          render();
+        }
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(container);
 
     return () => {
       window.removeEventListener("resize", resize);
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
   }, [segments, waveSpeed, waveAmplitude, twistCycles, lightColors, darkColors]);

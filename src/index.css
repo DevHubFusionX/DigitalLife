@@ -4,9 +4,18 @@
   --font-sans: 'Mulish', system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background-color: #fffdf5;
   color: #0f172a;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @keyframes flip-text-anim {
@@ -21,4 +30,5 @@ body {
 .flip-char {
   animation: flip-text-anim var(--flip-duration, 2.2s) cubic-bezier(0.76, 0, 0.24, 1) var(--flip-delay, 0s) var(--flip-iteration, infinite);
 }
+
 

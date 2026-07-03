@@ -82,7 +82,7 @@ export default function Footer({ onOpenBooking }: FooterProps) {
           </div>
 
           {/* Right Buttons */}
-          <div className="relative z-10 flex flex-col sm:flex-row lg:flex-col gap-4 w-full sm:w-auto shrink-0">
+          <div className="relative z-10 flex flex-col gap-3.5 w-full md:max-w-md lg:w-80 shrink-0">
             <motion.button
               onClick={onOpenBooking}
               whileHover={{ scale: 1.03, y: -2 }}

@@ -9,6 +9,7 @@ export default function Features() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHoveringTeam, setIsHoveringTeam] = useState(false);
   const teamCardRef = useRef<HTMLDivElement>(null);
+  const cardRectRef = useRef<DOMRect | null>(null);
 
   const avatarItems = [
     { id: '1', name: 'Sarah Connor', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80' },
@@ -17,12 +18,20 @@ export default function Features() {
     { id: '4', name: 'Alex Johnson', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80' }
   ];
 
+  const handleMouseEnter = () => {
+    if (window.innerWidth < 768) return;
+    setIsHoveringTeam(true);
+    if (teamCardRef.current) {
+      cardRectRef.current = teamCardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!teamCardRef.current) return;
-    const rect = teamCardRef.current.getBoundingClientRect();
+    if (window.innerWidth < 768) return;
+    if (!cardRectRef.current) return;
     setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: e.clientX - cardRectRef.current.left,
+      y: e.clientY - cardRectRef.current.top
     });
   };
 
@@ -96,7 +105,7 @@ export default function Features() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             onMouseMove={handleMouseMove}
-            onMouseEnter={() => setIsHoveringTeam(true)}
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={() => setIsHoveringTeam(false)}
             onClick={() => setIsModalOpen(true)}
             className="lg:col-span-8 relative h-95 rounded-4xl overflow-hidden shadow-lg group cursor-pointer"
