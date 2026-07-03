@@ -49,7 +49,7 @@ export default function Features() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-16">
           <div className="md:col-span-6">
             <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-lg">
-              Why Visibility Clan?
+              Why Digitalife Ehub?
             </h2>
           </div>
           <div className="md:col-span-6 md:pl-6">

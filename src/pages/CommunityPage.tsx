@@ -1,347 +1,288 @@
 import { useState, useEffect } from 'react';
-import { Users, Check, ArrowRight, MessageSquare, Loader2, Target } from 'lucide-react';
+import { ArrowRight, Check, Loader2 } from 'lucide-react';
 
 interface Training {
   id: number;
   title: string;
-  duration: string;
-  format: string;
-  seatsLeft: number;
+  tag: string;
+  weeks: string;
+  seats: number;
   description: string;
-  curriculum: string[];
-  audience: string;
+  outcomes: string[];
 }
 
+const trainings: Training[] = [
+  {
+    id: 1,
+    tag: 'Operations',
+    title: 'SOP & Operations Architecture',
+    weeks: '4 Weeks',
+    seats: 8,
+    description: 'Map workflows, eliminate bottlenecks, and write SOPs your team actually follows.',
+    outcomes: ['Delivery pipeline mapping', 'Self-executing SOPs', 'CRM & automation setup', 'Delegation metrics'],
+  },
+  {
+    id: 2,
+    tag: 'Brand & Visibility',
+    title: 'Authority Brand & Inbound Engine',
+    weeks: '6 Weeks',
+    seats: 12,
+    description: 'Build a high-authority content system that attracts leads without ad spend.',
+    outcomes: ['Positioning clarity', 'Case study creation', 'Content engine setup', 'Referral automation'],
+  },
+  {
+    id: 3,
+    tag: 'Leadership',
+    title: 'Founder Freedom & Delegation',
+    weeks: '3 Weeks',
+    seats: 5,
+    description: 'Step out of daily operations with frameworks that run without you.',
+    outcomes: ['Time audit framework', 'Task escalation matrix', 'KPI management', 'Assistant training'],
+  },
+];
+
 export default function CommunityPage() {
-  const [selectedCohort, setSelectedCohort] = useState<number>(1);
-  const [email, setEmail] = useState('');
+  const [open, setOpen] = useState<number | null>(1);
   const [name, setName] = useState('');
-  const [experience, setExperience] = useState('1-3 years');
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'Visibility Clan · VClan | Digitalife Ehub';
   }, []);
 
-  const trainings: Training[] = [
-    {
-      id: 1,
-      title: "Operations Architecture & SOP Blueprint",
-      duration: "4 Weeks (Live Cohort)",
-      format: "Weekly Audits + Slack Support",
-      seatsLeft: 8,
-      description: "Learn to systematically map your workflows, eliminate bottlenecks, write self-executing SOPs, and automate your client onboarding pipelines.",
-      curriculum: [
-        "Week 1: Mapping the delivery pipeline & identifying margin leaks.",
-        "Week 2: Writing executable SOPs your team actually follows.",
-        "Week 3: Tool selection, CRM setups, and database triggers.",
-        "Week 4: Scaling fulfillment and delegation metrics."
-      ],
-      audience: "Founders, COOs, Operations Managers"
-    },
-    {
-      id: 2,
-      title: "Authority Brand & Inbound Engine Blueprint",
-      duration: "6 Weeks (Guided Masterclass)",
-      format: "Group Coaching + Notion Playbook",
-      seatsLeft: 12,
-      description: "Stop relying on cold outbound. Build a high-authority content system using expert case studies, whitepapers, and organic thought leadership.",
-      curriculum: [
-        "Week 1: Clarifying positioning & identifying high-ticket client profiles.",
-        "Week 2: Drafting empirical case studies that demonstrate proof.",
-        "Week 3: Setting up a bi-weekly content creation engine.",
-        "Week 4: Optimizing conversion paths on your digital properties.",
-        "Week 5: Outbound support systems & referral network automation.",
-        "Week 6: Scaling marketing operations without massive ad budgets."
-      ],
-      audience: "B2B Consultants, Agencies, SaaS Founders"
-    },
-    {
-      id: 3,
-      title: "Founder Freedom & Smart Delegation",
-      duration: "3 Weeks (Cohort)",
-      format: "Live Workshops + Action Templates",
-      seatsLeft: 5,
-      description: "Decouple yourself from daily client operations. Learn delegation frameworks, build task escalation matrices, and hire your first operational analyst.",
-      curriculum: [
-        "Week 1: Time auditing and mapping delegation priorities.",
-        "Week 2: Creating task matrices and training assistants.",
-        "Week 3: Managing key performance metrics without micromanagement."
-      ],
-      audience: "Solopreneurs and early founders looking to step away from delivery"
-    }
-  ];
-
-  const handleRegister = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setFormSubmitted(true);
-    }, 1800);
+    if (!name || !email) return;
+    setLoading(true);
+    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1600);
   };
 
+  const selected = trainings.find(t => t.id === open);
+
   return (
-    <div className="bg-[#fffdf5] text-slate-900 pt-28 pb-24">
-      
-      {/* 1. EDITORIAL HERO SECTION */}
-      <section className="max-w-7xl mx-auto px-6 mb-20 text-center md:text-left">
-        <div className="max-w-3xl space-y-6">
-          <div className="flex justify-center md:justify-start items-center gap-2">
-            <span className="text-[10px] font-black uppercase text-[#3e4095] tracking-widest bg-[#3e4095]/5 px-2.5 py-1 rounded-full">
-              Ecosystem Hub
-            </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-black uppercase text-[#ffd148] tracking-widest bg-[#ffd148]/10 px-2.5 py-1 rounded-full">
-              Community & Cohorts
-            </span>
-          </div>
+    <div className="bg-[#fffdf5]">
 
-          <h1 className="text-4xl md:text-6xl font-black text-slate-950 tracking-tight leading-none">
-            The Scaling Collective & trainings
+      {/* ─── HERO ──────────────────────────────────────────────────── */}
+      <section className="min-h-screen bg-slate-950 flex flex-col justify-between px-6 pt-32 pb-16 relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#3e4095]/20 blur-[120px] rounded-full pointer-events-none" />
+
+        {/* Top label */}
+        <div className="relative z-10 flex items-center gap-3 max-w-7xl mx-auto w-full">
+          <span className="w-8 h-px bg-[#ffd148]" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#ffd148]">
+            Digitalife Ehub · Premium Community
+          </span>
+        </div>
+
+        {/* Big name */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full flex-1 flex flex-col justify-center py-20">
+          <h1 className="text-[clamp(4rem,14vw,11rem)] font-black text-white leading-none tracking-tighter">
+            Visibility<br />
+            <span className="text-[#3e4095]">Clan</span>
           </h1>
-          <p className="text-slate-500 text-sm md:text-lg leading-relaxed font-semibold max-w-2xl">
-            Empowering early-stage founders and operational leaders with structured cohorts, direct expert access, and collaborative scaling frameworks.
-          </p>
-        </div>
-      </section>
-
-
-
-      {/* 3. THE COMMUNITY COLLECTIVE SECTION */}
-      <section className="max-w-7xl mx-auto px-6 mb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        
-        {/* Left: Community Core details */}
-        <div className="lg:col-span-7 space-y-6">
-          <span className="text-[10px] font-black text-[#3e4095] tracking-widest uppercase block">PEER NETWORK</span>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-950">
-            Collaborate, Swap SOPs, and Share Tactics in Real-Time
-          </h2>
-          <p className="text-slate-500 text-sm font-semibold leading-relaxed">
-            Our community is not a social network for bragging rights. It's a structured hub on Slack where operations officers, managers, and consultants trade templates, request stack reviews, and solve scaling issues.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-            <div className="flex gap-2.5 items-start">
-              <MessageSquare className="w-5 h-5 text-[#ffd148] shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-black text-slate-900 uppercase">Direct Expert Q&A</h4>
-                <p className="text-[11px] text-slate-400 font-semibold leading-normal mt-0.5">
-                  Get structural answers from Brandon Smithwick and Valerie Chapman weekly.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2.5 items-start">
-              <Users className="w-5 h-5 text-[#3e4095] shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-black text-slate-900 uppercase">SOP Swap Library</h4>
-                <p className="text-[11px] text-slate-400 font-semibold leading-normal mt-0.5">
-                  Instantly access standard operational checklists shared by verified operations teams.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-6">
-            <a 
-              href="https://slack.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-slate-950 hover:bg-[#3e4095] text-white font-bold px-6 py-3.5 rounded-xl text-xs transition-colors"
-            >
-              Request Free Community Invite <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-
-        {/* Right: Modern Wireframe Visual */}
-        <div className="lg:col-span-5">
-          <div className="border border-black/5 bg-white rounded-3xl p-6 shadow-lg space-y-4">
-            <div className="flex items-center justify-between border-b border-black/5 pb-4">
-              <span className="text-[9px] font-black text-slate-400 uppercase">Slack Channel Preview</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            </div>
-            
-            <div className="space-y-4 text-xs font-semibold text-slate-600">
-              <div className="p-3 bg-slate-50 border border-black/5 rounded-xl">
-                <span className="font-bold text-[#3e4095] block mb-0.5">#general-ops</span>
-                <p className="text-[11px] leading-relaxed">
-                  \"Just swapped our client portal layout to Notion databases. Lead velocity SLA drops are down 40%! Templates in the swap drive.\"
-                </p>
-              </div>
-              <div className="p-3 bg-slate-50 border border-black/5 rounded-xl">
-                <span className="font-bold text-[#ffd148] block mb-0.5">#sop-review</span>
-                <p className="text-[11px] leading-relaxed">
-                  \"Can anyone review our video production checklist? SOP velocity seems sluggish (takes 1.5 days to execute).\"
-                </p>
-              </div>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl">
+            <p className="text-slate-400 text-base leading-relaxed font-semibold">
+              A premium growth community for entrepreneurs and MSMEs across Nigeria and Africa — where clarity meets structure, and structure creates visibility.
+            </p>
+            <div className="flex flex-col justify-end gap-3">
+              <a
+                href="https://slack.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#ffd148] hover:bg-[#f5c800] text-slate-950 font-black px-8 py-4 rounded-full text-xs transition-all w-fit"
+              >
+                Join VClan — It's Free <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+              <button
+                onClick={() => document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-xs font-bold text-slate-500 hover:text-white transition-colors text-left cursor-pointer bg-transparent border-none w-fit"
+              >
+                Explore cohort programs ↓
+              </button>
             </div>
           </div>
         </div>
 
-      </section>
-
-      {/* 4. ACTIVE TRAININGS SECTION */}
-      <section className="max-w-7xl mx-auto px-6 mb-24 border-t border-black/5 pt-20">
-        <div className="text-center mb-16 space-y-3">
-          <span className="text-[10px] font-black text-[#3e4095] tracking-widest uppercase block">COHORTS & PROGRAMMING</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">
-            High-Impact Growth Trainings
-          </h2>
-          <p className="text-slate-500 text-sm font-semibold max-w-xl mx-auto">
-            Practical instruction mapping real tools and frameworks. No fluff, no slides. Build systems during class.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {trainings.map(t => (
-            <div 
-              key={t.id}
-              className={`border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${
-                selectedCohort === t.id 
-                  ? 'border-[#3e4095] bg-[#3e4095]/[0.01] shadow-lg' 
-                  : 'border-black/5 bg-white hover:border-black/10'
-              }`}
-            >
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
-                    {t.duration}
-                  </span>
-                  <span className="text-[8px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full">
-                    {t.seatsLeft} SEATS LEFT
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-slate-950 mb-2 leading-tight">
-                  {t.title}
-                </h3>
-                <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6">
-                  {t.description}
-                </p>
-
-                {/* Curriculum breakdown */}
-                <div className="border-t border-black/5 pt-4 mb-6">
-                  <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Syllabus Outline</h5>
-                  <ul className="space-y-2">
-                    {t.curriculum.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-[10px] font-semibold text-slate-600">
-                        <Check className="w-3.5 h-3.5 text-[#ffd148] shrink-0 mt-0.5" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div>
-                <button 
-                  onClick={() => setSelectedCohort(t.id)}
-                  className={`w-full py-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                    selectedCohort === t.id 
-                      ? 'bg-[#3e4095] border-[#3e4095] text-white' 
-                      : 'bg-transparent border-black/10 text-slate-700 hover:border-[#3e4095] hover:text-[#3e4095]'
-                  }`}
-                >
-                  {selectedCohort === t.id ? 'Selected Program' : 'Select Program'}
-                </button>
-              </div>
-
+        {/* Bottom strip stats */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full border-t border-white/10 pt-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            { n: '1,200+', l: 'Members' },
+            { n: '4 Pillars', l: 'Education · Mentorship · Tech · Community' },
+            { n: '6–10 Wks', l: 'Clarity-to-structure timeline' },
+            { n: 'Nigeria & Africa', l: 'Region served' },
+          ].map(s => (
+            <div key={s.n}>
+              <p className="text-white font-black text-lg tracking-tight">{s.n}</p>
+              <p className="text-slate-500 text-[11px] font-semibold mt-0.5">{s.l}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 5. DYNAMIC INTAKE REGISTRATION */}
-      <section className="max-w-3xl mx-auto px-6 py-12">
-        <div className="border border-black/5 bg-white rounded-3xl p-8 shadow-md relative overflow-hidden">
-          
-          {/* Subtle Accent Line */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#3e4095] to-[#ffd148]" />
+      {/* ─── WHAT VCLAN IS ─────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 py-28">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+          <div className="md:col-span-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#3e4095] mb-6">What VClan Is</p>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight">
+              Not just a community.<br />A structured ecosystem.
+            </h2>
+          </div>
+          <div className="md:col-span-7 md:pt-16 space-y-8">
+            <p className="text-slate-500 text-base leading-relaxed font-semibold border-l-2 border-[#ffd148] pl-5">
+              VClan was founded on a simple conviction: the tools, training, and strategic support that large corporations take for granted should be accessible to every small business owner.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { n: '01', t: 'Education', d: 'Frameworks built for your market, not textbooks.' },
+                { n: '02', t: 'Mentorship', d: 'Direct expert access at every growth stage.' },
+                { n: '03', t: 'Technology', d: 'Tools and workflows that scale with you.' },
+                { n: '04', t: 'Community', d: 'A tribe of builders who move together.' },
+              ].map(p => (
+                <div key={p.n} className="p-5 bg-slate-50 rounded-2xl border border-black/5">
+                  <span className="text-[10px] font-black text-slate-300 block mb-2">{p.n}</span>
+                  <h4 className="text-sm font-black text-slate-950 mb-1">{p.t}</h4>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">{p.d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {!formSubmitted ? (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-[#3e4095]" />
-                <h3 className="text-xl font-bold text-slate-950">Cohort Registration</h3>
+      {/* ─── PROGRAMS ──────────────────────────────────────────────── */}
+      <section className="bg-slate-950 py-28 px-6" id="programs">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#ffd148] mb-4">VClan Cohorts</p>
+              <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                Structured programs.<br />Real transformation.
+              </h2>
+            </div>
+            <p className="text-slate-400 text-sm font-semibold max-w-xs">
+              Select a cohort below and apply to lock your seat.
+            </p>
+          </div>
+
+          {/* Accordion */}
+          <div className="flex flex-col divide-y divide-white/10 border-y border-white/10">
+            {trainings.map((t) => (
+              <div key={t.id} className="py-6 cursor-pointer" onClick={() => setOpen(open === t.id ? null : t.id)}>
+                <div className="flex items-center gap-6">
+                  <span className="text-slate-600 font-bold text-sm w-6 shrink-0">0{t.id}</span>
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <span className="md:col-span-2 text-[9px] font-black uppercase tracking-widest text-[#ffd148] bg-[#ffd148]/10 px-2 py-1 rounded-full w-fit">
+                      {t.tag}
+                    </span>
+                    <h3 className={`md:col-span-7 text-lg md:text-xl font-black tracking-tight transition-colors ${open === t.id ? 'text-[#ffd148]' : 'text-white'}`}>
+                      {t.title}
+                    </h3>
+                    <div className="md:col-span-3 flex items-center justify-between md:justify-end gap-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold text-slate-400">{t.weeks}</span>
+                        <span className="text-[9px] font-black text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                          {t.seats} seats
+                        </span>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ${open === t.id ? 'bg-[#ffd148] border-[#ffd148] text-slate-950' : 'border-white/20 text-white'}`}>
+                        <span className="text-sm font-black leading-none">{open === t.id ? '−' : '+'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {open === t.id && (
+                  <div className="mt-8 ml-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <p className="text-slate-400 text-sm font-semibold leading-relaxed">{t.description}</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {t.outcomes.map((o, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="w-1 h-1 rounded-full bg-[#ffd148] shrink-0" />
+                          <span className="text-slate-300 text-xs font-semibold">{o}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                Applying for: <strong className="text-slate-950">{trainings.find(t => t.id === selectedCohort)?.title}</strong>. Fill out the application details to lock your entry request.
-              </p>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1.5">Full Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="Jane Doe" 
-                      required 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-[#fffdf5] border border-black/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1.5">Corporate Email</label>
-                    <input 
-                      type="email" 
-                      placeholder="jane@company.com" 
-                      required 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-[#fffdf5] border border-black/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
-                    />
-                  </div>
-                </div>
+      {/* ─── APPLY ─────────────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 py-28">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#3e4095] mb-6">Apply to VClan</p>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight mb-6">
+              Lock your<br />seat.
+            </h2>
+            {selected && (
+              <div className="border-l-2 border-[#3e4095] pl-4 space-y-1">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Selected Program</p>
+                <p className="text-base font-black text-slate-950">{selected.title}</p>
+                <p className="text-xs text-slate-400 font-semibold">{selected.weeks} · {selected.seats} seats remaining</p>
+              </div>
+            )}
+            <p className="text-slate-400 text-sm font-semibold leading-relaxed mt-6">
+              Applications are reviewed within 24 hours. Choose a cohort above, then submit below.
+            </p>
+          </div>
 
+          <div>
+            {!submitted ? (
+              <form onSubmit={submit} className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-1.5">Professional Experience</label>
-                  <select 
-                    value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
-                    className="w-full bg-[#fffdf5] border border-black/10 rounded-xl px-4 py-3.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#3e4095] appearance-none cursor-pointer"
-                  >
-                    <option value="1-3 years">1 - 3 years experience</option>
-                    <option value="3-7 years">3 - 7 years experience</option>
-                    <option value="7+ years">7+ years experience</option>
-                  </select>
+                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="Jane Doe"
+                    required
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full bg-white border border-black/10 rounded-xl px-4 py-4 text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095] transition-colors"
+                  />
                 </div>
-
-                <button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="w-full bg-slate-950 hover:bg-[#3e4095] text-white font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none"
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="you@business.com"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full bg-white border border-black/10 rounded-xl px-4 py-4 text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095] transition-colors"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-slate-950 hover:bg-[#3e4095] text-white font-black py-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer border-none mt-2"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#ffd148]" /> Verifying Eligibility...
-                    </>
-                  ) : (
-                    <>
-                      Submit Application <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  {loading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                    : <>Submit Application <ArrowRight className="w-4 h-4" /></>
+                  }
                 </button>
               </form>
-            </div>
-          ) : (
-            <div className="text-center py-8 space-y-6">
-              <div className="w-16 h-16 bg-emerald-50 rounded-full border border-emerald-500/10 flex items-center justify-center mx-auto">
-                <Check className="w-8 h-8 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-slate-950">Application Received</h3>
-                <p className="text-xs text-slate-500 font-semibold mt-1">
-                  Thank you, <strong className="text-slate-950">{name}</strong>. We have registered your application for the <strong className="text-slate-950">{trainings.find(t => t.id === selectedCohort)?.title}</strong>. Check your inbox within 24 hours for onboarding documents.
+            ) : (
+              <div className="pt-4 space-y-4">
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center">
+                  <Check className="w-5 h-5 text-emerald-600" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-950">Welcome to VClan, {name}.</h3>
+                <p className="text-sm text-slate-500 font-semibold leading-relaxed max-w-sm">
+                  Your application is in. Check your inbox within 24 hours for next steps.
                 </p>
               </div>
-            </div>
-          )}
-
+            )}
+          </div>
         </div>
       </section>
 

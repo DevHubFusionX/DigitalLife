@@ -21,7 +21,7 @@ export default function ResourcesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'VClan Resource Library | Free SOP Downloads & MSME Growth Playbooks';
+    document.title = 'Resource Library | Free SOP Downloads & MSME Growth Playbooks | Digitalife Ehub';
 
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
@@ -71,7 +71,7 @@ export default function ResourcesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 w-full">
           <div className="lg:col-span-8 max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-white">
-              VClan Resource Library
+              Digitalife Resource Library
             </h1>
             <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl font-semibold mb-8">
               Access our growing collection of guides, templates, toolkits, frameworks, training materials, business resources, videos, and practical insights designed to help you grow with structure, increase visibility and Revenue

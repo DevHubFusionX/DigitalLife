@@ -82,22 +82,22 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
       <section className="py-12 max-w-5xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
-          {/* About Visibility Clan */}
+          {/* About Digitalife Ehub */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             <h2 className="text-2xl md:text-3xl font-black text-[#3e4095] tracking-tight">
-              About Visibility Clan
+              About Digitalife Ehub
             </h2>
             <p className="text-slate-700 text-sm md:text-base leading-relaxed font-semibold">
-              Visibility Clan (VClan) is a premium business growth community purpose-built to help young entrepreneurs, MSMEs, and startups across Nigeria and Africa find the clarity, structure, and visibility they need to compete, scale, and win in today's digital economy.
+              Digitalife Ehub is a business development and brand management firm focused on empowering MSMEs, SMEs, early-stage entrepreneurs, and informal businesses to build structured, scalable, and visible enterprises.
             </p>
             <p className="text-slate-600 text-sm md:text-base leading-relaxed font-semibold">
-              VClan operates at the critical intersection of education, mentorship, technology, and community — bridging the gap between raw entrepreneurial potential and structured, scalable business success.
+              We operate at the critical intersection of strategy, structure, and visibility — bridging the gap between raw entrepreneurial potential and structured, scalable business success.
             </p>
             <p className="text-slate-600 text-sm md:text-base leading-relaxed font-semibold">
-              We exist because a fundamental market failure has gone unaddressed: over 80% of small businesses dominate Nigeria's labour market, yet contribute less than 50% of national economic output. The root cause is not lack of effort or ambition — it is poor visibility, structural deficiency, and severely limited access to mentorship and resources that would otherwise help these businesses compete.
+              We exist because a fundamental market failure has gone unaddressed: over 80% of small businesses dominate Nigeria's labour market, yet contribute less than 50% of national economic output. The root cause is not lack of effort or ambition — it is poor visibility, structural deficiency, and severely limited access to strategic support.
             </p>
             <p className="text-slate-600 text-sm md:text-base leading-relaxed font-semibold">
-              VClan is the answer. We are building a tribe of visible, structured, and thriving business owners who learn together, grow together, and support one another on the journey from obscurity to authority.
+              Digitalife Ehub is the answer. We are building structured, thriving businesses that compete, scale, and win in today's digital economy.
             </p>
 
             {/* Core Identity Statement Box */}
@@ -106,7 +106,7 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
                 Our Core Identity Statement
               </h3>
               <p className="text-slate-700 text-xs md:text-sm leading-relaxed font-bold">
-                Visibility Clan is not just a community — it is a business growth platform that provides the tools, training, mentorship, and network that Nigerian and African entrepreneurs need to build businesses that are seen, structured, and scalable.
+                Digitalife Ehub is not just a consultancy — it is a business growth platform that provides the tools, training, mentorship, and strategic framework that Nigerian and African entrepreneurs need to build businesses that are seen, structured, and scalable.
               </p>
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
         </div>
       </section>
 
-      {/* Brand Narrative Section: The Problem We Solve & How VClan Was Born */}
+      {/* Brand Narrative Section: The Problem We Solve & How Digitalife Ehub Was Founded */}
       <section className="py-16 bg-[#faf7ee] border-y border-black/5">
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
           
@@ -149,17 +149,17 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
               Nigeria is a nation of entrepreneurs. Across every city, street, and social media feed, there are thousands of brilliant, hardworking business owners building something meaningful. Yet year after year, the data tells a sobering story: small businesses dominate the labour market but dramatically underperform their potential economic contribution.
             </p>
             <p className="text-slate-600 text-sm leading-relaxed font-semibold">
-              The root causes are predictable: founders building without a blueprint. Businesses operating on instinct rather than systems. Talented people who cannot get seen past algorithm walls. Growth plateauing because structure was never built in. The ambition is there. The grind is real. What's missing is the framework, the visibility, and the tribe.
+              The root causes are predictable: founders building without a blueprint. Businesses operating on instinct rather than systems. Talented people who cannot get seen past algorithm walls. Growth plateauing because structure was never built in. The ambition is there. The grind is real. What's missing is the framework, the visibility, and the strategic support.
             </p>
           </div>
 
           <div className="flex flex-col gap-4">
-            <h3 className="text-xl font-black text-[#3e4095]">How VClan Was Born</h3>
+            <h3 className="text-xl font-black text-[#3e4095]">How Digitalife Ehub Was Founded</h3>
             <p className="text-slate-600 text-sm leading-relaxed font-semibold">
-              Visibility Clan was founded on a simple but powerful conviction: that the tools, training, and tribe that large corporations take for granted should be accessible to every small business owner. That a fashion brand in Lagos and a logistics company in Kano should be able to access the same quality of strategic thinking as the multinationals they compete with.
+              Digitalife Ehub was founded on a simple but powerful conviction: that the tools, training, and strategic support that large corporations take for granted should be accessible to every small business owner. That a fashion brand in Lagos and a logistics company in Kano should be able to access the same quality of strategic thinking as the multinationals they compete with.
             </p>
             <p className="text-slate-600 text-sm leading-relaxed font-semibold">
-              VClan was built to be that equalizer — a structured ecosystem that gives growing businesses a place to learn, a system to follow, mentors to consult, and a community to grow with.
+              Digitalife Ehub was built to be that equalizer — a structured ecosystem that gives growing businesses a clear direction to follow, systems to implement, experts to consult, and a partner to grow with.
             </p>
           </div>
 

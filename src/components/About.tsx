@@ -204,7 +204,7 @@ export default function About({ onOpenBooking }: AboutProps) {
               Who We Are
             </h2>
             <p className="text-[#717b72] text-sm md:text-base leading-relaxed mb-8 font-semibold">
-              Visibility Clan (VClan) is a premium business growth community purpose-built to help young entrepreneurs, MSMEs, and startups across Nigeria and Africa find the clarity, structure, and visibility they need to compete, scale, and win in today's digital economy.
+              Digitalife Ehub is a business development and brand management firm focused on empowering MSMEs, SMEs, early-stage entrepreneurs, and informal businesses to build structured, scalable, and visible enterprises.
             </p>
 
             {/* Cultural Checkpoints */}
