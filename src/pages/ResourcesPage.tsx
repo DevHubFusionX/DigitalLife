@@ -51,8 +51,8 @@ export default function ResourcesPage() {
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTopic = selectedTopic === 'All Topics' || item.category === selectedTopic;
-    const matchesFormat = selectedFormat === 'All Formats' || item.format === selectedFormat;
+    const matchesTopic = selectedTopic === 'All Topics' || (item.category || '').toLowerCase() === selectedTopic.toLowerCase();
+    const matchesFormat = selectedFormat === 'All Formats' || (item.format || '').toLowerCase() === selectedFormat.toLowerCase();
     return matchesSearch && matchesTopic && matchesFormat;
   });
 
@@ -135,7 +135,7 @@ export default function ResourcesPage() {
         {/* Featured Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {resources
-            .filter((item) => item.category === selectedFeaturedTab)
+            .filter((item) => (item.category || '').toLowerCase() === selectedFeaturedTab.toLowerCase() && (item.featured === true || String(item.featured) === 'true'))
             .map((item) => (
               <Link
                 key={item.id}
@@ -145,7 +145,7 @@ export default function ResourcesPage() {
                 {/* Cover: image or gradient */}
                 <div className={`h-48 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-6 flex flex-col justify-between`}>
                   {item.coverImage && (
-                    <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-contain bg-slate-900" />
                   )}
                   <div className="relative z-10 flex flex-col justify-between h-full">
                     <span className="self-end bg-white/10 backdrop-blur-md border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
@@ -182,7 +182,7 @@ export default function ResourcesPage() {
                 </div>
               </Link>
             ))}
-          {resources.filter((i) => i.category === selectedFeaturedTab).length === 0 && (
+          {resources.filter((i) => (i.category || '').toLowerCase() === selectedFeaturedTab.toLowerCase() && (i.featured === true || String(i.featured) === 'true')).length === 0 && (
             <div className="col-span-full py-12 text-center text-slate-400 font-bold text-sm">
               No featured resources in this category yet.
             </div>
@@ -296,7 +296,7 @@ export default function ResourcesPage() {
             >
               <div className={`h-40 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-5 flex flex-col justify-between`}>
                 {item.coverImage && (
-                  <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-contain bg-slate-900" />
                 )}
                 <div className="relative z-10 flex flex-col justify-between h-full">
                   <span className="self-end bg-white/10 backdrop-blur-md border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">

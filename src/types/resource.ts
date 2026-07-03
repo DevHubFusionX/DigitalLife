@@ -26,6 +26,8 @@ export interface Resource {
   outcomes?: string[];
   isFree: boolean;
   price?: number;
+  featured?: boolean;
+  downloadUrl?: string | null;
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
 }

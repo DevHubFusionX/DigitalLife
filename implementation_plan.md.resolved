@@ -1,103 +1,196 @@
-# Implementation Plan: Firestore-Driven Blog CRUD
+# Redirect All CTA Buttons to WhatsApp, Update Contact Details, Fix Featured Resources
 
-Migrating the current hardcoded blog system (in `BlogPage.tsx` and `BlogPostPage.tsx`) to a dynamic, real-time Firestore database with full CRUD capabilities in the admin dashboard.
+## Summary
+
+Replace all form-based booking/consultation flows with direct WhatsApp links, update the Clarity Session button to link to a Selar clarity call page, update contact details across the site, add a `featured` field to resources, and keep form-gating only for resource downloads.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Selar Clarity Call Link**: You mentioned "Clarity session should direct to the clarity call link — the seller link." I need the **exact Selar URL** for the clarity call (e.g., `https://selar.co/your-product-id`). Please provide this link so I can wire it up correctly.
+
+> [!IMPORTANT]
+> **WhatsApp Phone Number**: The current WhatsApp sticky uses a placeholder number `2348123456789`. The contact number you gave is `08135134528` which translates to `2348135134528` in international format. Should I use **2348135134528** for all WhatsApp links?
+
+> [!IMPORTANT]
+> **WhatsApp Default Messages**: Currently there's one default message. Should different buttons have different pre-filled messages? For example:
+> - "Book Demo" → `Hi, I'd like to book a growth consultation.`
+> - "Book Strategy Session" → `Hi, I'd like to book a strategy session.`
+> - "Speak With Our Team" → `Hi, I'd like to speak with your team.`
+> - Or should all buttons use the same generic message?
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **CommunityPage "Apply" Form**: The Community page has an application form ("Lock your seat" → name + email → Submit Application). Should this also redirect to WhatsApp, or should it remain a form since it's more like a registration/application rather than a resource download?
+
+> [!IMPORTANT]
+> **"Download free Structure checklist" button** in the Features modal — should this link to WhatsApp too, or to the Resources page since it's about downloading a resource?
 
 ---
 
 ## Proposed Changes
 
-### 1. Types & Data Layer
+### 1. Create a Centralized WhatsApp Config
 
-#### [NEW] [blog.ts](file:///home/frank/Documents/digitalife/src/types/blog.ts)
-- Define TypeScript interfaces for `BlogPost` and `BlogSection`.
-- Properties:
-  - `id`: string (slug for SEO-friendly URLs, e.g. `systems-first-scaling` instead of numeric IDs)
-  - `title`: string
-  - `subtitle`: string
-  - `category`: string (can share categories with resources or define independent ones)
-  - `date`: string (formatted creation date, e.g. "Sep 19, 2026")
-  - `author`: string
-  - `authorRole`: string
-  - `readTime`: string (auto-calculated from word count)
-  - `coverBg`: string (gradient fallback)
-  - `coverLabel`: string (card display label)
-  - `introduction`: string
-  - `sections`: `BlogSection[]` (each section has a `heading`, `anchor`, and array of `paragraphs` or text)
-  - `keyTakeaway`: string
-  - `createdAt`, `updatedAt`: Firestore timestamps or ISO strings
+#### [NEW] [whatsapp.ts](file:///home/frank/Documents/digitalife/src/lib/whatsapp.ts)
 
-#### [NEW] [blog.ts](file:///home/frank/Documents/digitalife/src/lib/firestore/blog.ts)
-- Implement CRUD operations for the `posts` Firestore collection:
-  - `subscribeToPosts(callback)`: Real-time listeners.
-  - `addPost(slug: string, data: Omit<BlogPost, 'id'>)`: Create new post.
-  - `updatePost(id: string, data: Partial<BlogPost>)`: Update existing post.
-  - `deletePost(id: string)`: Delete post.
-  - `seedDefaultPosts()`: Wipe all posts and seed the 9 original hardcoded posts from the current blog files into Firestore.
+Create a single source of truth for WhatsApp URL generation and contact details so all components reference the same phone number and we can easily change it later.
 
-#### [NEW] [useBlog.ts](file:///home/frank/Documents/digitalife/src/hooks/useBlog.ts)
-- Real-time React hook `useBlog()` that returns:
-  - `posts`: Array of all blog posts
-  - `loading`: boolean
-  - `error`: Error | null
+```ts
+export const WHATSAPP_PHONE = '2348135134528';
+export const CONTACT_EMAIL = 'Digitaligehub@gmail.com';
+export const CONTACT_ADDRESS = 'Okpu umuobo, Aba, Abia state, Nigeria';
+export const CONTACT_PHONE = '08135134528';
+export const SELAR_CLARITY_CALL_URL = 'https://selar.co/PLACEHOLDER'; // User to provide
+
+export function getWhatsAppUrl(message?: string): string {
+  const defaultMsg = 'Hi Digitalife Ehub, I am interested in scaling and structuring my business.';
+  const text = encodeURIComponent(message || defaultMsg);
+  return `https://wa.me/${WHATSAPP_PHONE}?text=${text}`;
+}
+```
 
 ---
 
-### 2. Admin Interface
-
-#### [NEW] [AdminBlogPage.tsx](file:///home/frank/Documents/digitalife/src/pages/admin/AdminBlogPage.tsx)
-- Renders a table of all posts with columns: Title, Category, Author, Date, and Actions.
-- Search input to filter posts by title/author.
-- "Add Post" button opening the form modal.
-- "Edit" and "Delete" button controls.
-- "Reset & Seed Blog" button in Settings or here to restore the original articles.
-
-#### [NEW] [BlogForm.tsx](file:///home/frank/Documents/digitalife/src/components/admin/BlogForm.tsx)
-- Form modal to handle adding/editing a blog post.
-- Fields:
-  - Title, Subtitle, Author, AuthorRole, Category (drawn dynamically from `useMetadata`), Cover BG (with gradient picker), Cover Label, Key Takeaway.
-  - Introduction (textarea).
-  - Dynamic Sections builder: allow users to add multiple sections. Each section has a Heading and a Content textarea. (Paragraphs are automatically split on double newlines `\n\n` on save).
-  - URL Slug (generated from Title with override capability).
-- Auto-calculates `readTime` based on total words in introduction + sections.
-
-#### [MODIFY] [AdminSidebar.tsx](file:///home/frank/Documents/digitalife/src/components/admin/AdminSidebar.tsx)
-- Add "Blog Posts" tab in the admin navigation with a book icon.
-
-#### [MODIFY] [AdminDashboardPage.tsx](file:///home/frank/Documents/digitalife/src/pages/admin/AdminDashboardPage.tsx)
-- Add a stats card showing the total count of blog posts.
-
-#### [MODIFY] [AdminSettingsPage.tsx](file:///home/frank/Documents/digitalife/src/pages/admin/AdminSettingsPage.tsx)
-- Integrate a "Reset & Seed Blog Posts" button under the seed section.
+### 2. Replace BookingModal with WhatsApp Redirect
 
 #### [MODIFY] [App.tsx](file:///home/frank/Documents/digitalife/src/App.tsx)
-- Register route `/admin/blog` pointing to `AdminBlogPage`.
+
+- Change `handleOpenBooking` from opening a modal to redirecting to WhatsApp via `window.open(getWhatsAppUrl(), '_blank')`.
+- Remove the `BookingModal` component render and import.
+- The `isBookingOpen` state and `BookingModal` component become unnecessary.
 
 ---
 
-### 3. Public Pages Refactoring
+### 3. Update WhatsApp Sticky Phone Number
 
-#### [MODIFY] [BlogPage.tsx](file:///home/frank/Documents/digitalife/src/pages/BlogPage.tsx)
-- Replace local state arrays with data fetched from `useBlog()`.
-- Sort by date or creation time.
-- Update filters and search queries to run against Firestore data.
+#### [MODIFY] [WhatsappSticky.tsx](file:///home/frank/Documents/digitalife/src/components/WhatsappSticky.tsx)
 
-#### [MODIFY] [BlogPostPage.tsx](file:///home/frank/Documents/digitalife/src/pages/BlogPostPage.tsx)
-- Retrieve current post by string slug (using `:id` parameter from react-router).
-- Subscribe/fetch single post from the post list.
-- Fallback safely to loading/not-found states.
+- Import from `whatsapp.ts` config instead of hardcoded phone number.
+- Use `getWhatsAppUrl()` instead of inline URL construction.
+
+---
+
+### 4. Update Contact Details
+
+#### [MODIFY] [Footer.tsx](file:///home/frank/Documents/digitalife/src/components/Footer.tsx)
+
+- Update email from `info@digitalifeehub.com` → `Digitaligehub@gmail.com`
+- Update address from `Lagos, Nigeria` → `Okpu umuobo, Aba, Abia state, Nigeria`
+- Add phone number `08135134528` with a `tel:` link
+- Change "Book a Growth Consultation" and "Speak With Our Team" buttons from `onOpenBooking` to `window.open(getWhatsAppUrl(...))`.
+
+#### [MODIFY] [PrivacyPage.tsx](file:///home/frank/Documents/digitalife/src/pages/PrivacyPage.tsx)
+
+- Update email from `info@digitalifeehub.com` → `Digitaligehub@gmail.com`
+
+---
+
+### 5. Update All CTA Buttons Across Pages
+
+Every `onClick={onOpenBooking}` button will be changed to open WhatsApp instead. The `onOpenBooking` prop can be completely removed from all components since the WhatsApp redirect will be called directly.
+
+#### [MODIFY] [Hero.tsx](file:///home/frank/Documents/digitalife/src/components/Hero.tsx)
+
+- "Book Your Free Growth Clarity Session" button → opens WhatsApp link
+- Remove `onOpenBooking` prop entirely
+
+#### [MODIFY] [About.tsx](file:///home/frank/Documents/digitalife/src/components/About.tsx)
+
+- "Book a 30 minutes clarity call" → links to the **Selar clarity call URL** (external link)
+- Remove `onOpenBooking` prop
+
+#### [MODIFY] [Navbar.tsx](file:///home/frank/Documents/digitalife/src/components/Navbar.tsx)
+
+- "Book Demo" buttons (desktop + mobile) → open WhatsApp
+- Remove `onOpenBooking` prop
+
+#### [MODIFY] [Features.tsx](file:///home/frank/Documents/digitalife/src/components/Features.tsx)
+
+- "Download free Structure checklist" → link to `/resources` or WhatsApp (pending user decision)
+- "Start My Growth Journey" → WhatsApp link
+
+#### [MODIFY] [AboutPage.tsx](file:///home/frank/Documents/digitalife/src/pages/AboutPage.tsx)
+
+- "Get Started" button → WhatsApp
+- "Book a 30-Minute Clarity Call" → **Selar clarity call URL**
+- "Start Your Growth Journey" → WhatsApp
+- "💡 Let's Build Your Next Level" → WhatsApp
+- Remove `onOpenBooking` prop
+
+#### [MODIFY] [ServicesPage.tsx](file:///home/frank/Documents/digitalife/src/pages/ServicesPage.tsx)
+
+- "Book a Strategy Session" → WhatsApp
+- "Claim Free Consultation" → WhatsApp
+- Remove `onOpenBooking` prop
+
+#### [MODIFY] [Home.tsx](file:///home/frank/Documents/digitalife/src/pages/Home.tsx)
+
+- Remove `onOpenBooking` prop passing to `Hero` and `About`
+
+---
+
+### 6. Add `featured` Field to Resources
+
+#### [MODIFY] [resource.ts](file:///home/frank/Documents/digitalife/src/types/resource.ts)
+
+- Add `featured?: boolean` field to the `Resource` interface.
+
+#### [MODIFY] [ResourceForm.tsx](file:///home/frank/Documents/digitalife/src/components/admin/ResourceForm.tsx)
+
+- Add a "Featured" checkbox to the admin form (similar to the `isFree` toggle).
+- Include `featured` in the form state and payload.
+
+#### [MODIFY] [ResourcesPage.tsx](file:///home/frank/Documents/digitalife/src/pages/ResourcesPage.tsx)
+
+- Filter the "Featured Resources" section to only show resources where `featured === true`.
+- If no featured resources exist in a category, show a fallback message.
+
+#### [MODIFY] [defaultResources.ts](file:///home/frank/Documents/digitalife/src/data/defaultResources.ts)
+
+- Add `featured: true` to some default resources so the section isn't empty.
+
+---
+
+### 7. Keep Resource Download Forms As-Is
+
+#### [NO CHANGE] [ResourceDetailPage.tsx](file:///home/frank/Documents/digitalife/src/pages/ResourceDetailPage.tsx)
+
+- The email lead-capture gate for free resources and the checkout form for paid resources will **remain unchanged** — these are the only places users fill forms.
+
+---
+
+## Change Summary Table
+
+| Location | Current Behavior | New Behavior |
+|---|---|---|
+| All "Book" / "Consult" / "Get Started" buttons | Opens `BookingModal` (form) | Opens WhatsApp chat link in new tab |
+| "Clarity Call" buttons | Opens `BookingModal` | Links to Selar clarity call URL |
+| Footer email | `info@digitalifeehub.com` | `Digitaligehub@gmail.com` |
+| Footer address | `Lagos, Nigeria` | `Okpu umuobo, Aba, Abia state, Nigeria` |
+| Footer phone | Not shown | `08135134528` |
+| Privacy email | `info@digitalifeehub.com` | `Digitaligehub@gmail.com` |
+| WhatsApp sticky phone | `2348123456789` (placeholder) | `2348135134528` (real) |
+| Featured Resources section | Shows all resources in category | Shows only `featured: true` resources |
+| Resource download forms | Email gate / checkout | **No change** (stays as form) |
+| `BookingModal` component | Renders modal with form | **Removed entirely** |
 
 ---
 
 ## Verification Plan
 
 ### Automated Tests
-- Type checking: `npx tsc --noEmit`
-- Build test: `pnpm build`
+- Run `npm run build` to verify no TypeScript errors after prop removal
+- Browser test: click through all CTA buttons to verify they open WhatsApp in a new tab
+- Browser test: verify "Clarity Call" buttons open the Selar link
+- Browser test: verify Footer shows updated contact info
+- Browser test: verify Featured Resources section filters correctly
 
 ### Manual Verification
-1. Login to admin panel, navigate to settings, and click "Reset & Seed Blog Posts".
-2. Go to the new "Blog Posts" tab, click "Add Post", write a new test post with sections, and save it.
-3. Edit the post and confirm changes persist.
-4. Go to the public Blog page, verify the new post is visible and category filtering works.
-5. Click on the post to navigate to its SEO-friendly URL, verifying layout and content look premium.
-6. Delete the post from the admin table and confirm it disappears from public view.
+- Check resource download forms still work (email gate + paid checkout)
+- Confirm WhatsApp opens with correct phone number and pre-filled messages

@@ -3,12 +3,9 @@ import { Menu, X, Bell, ChevronDown, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import FlipText from './ui/flip-text';
+import { openWhatsApp, WA_MESSAGES } from '../lib/whatsapp';
 
-interface NavbarProps {
-  onOpenBooking: () => void;
-}
-
-export default function Navbar({ onOpenBooking }: NavbarProps) {
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<'services' | 'resources' | null>(null);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
@@ -237,7 +234,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3 relative">
           <motion.button
-            onClick={onOpenBooking}
+            onClick={() => openWhatsApp(WA_MESSAGES.bookDemo)}
             whileHover={{ scale: 1.02, backgroundColor: '#3e4095', color: '#ffffff', borderColor: '#3e4095' }}
             whileTap={{ scale: 0.98 }}
             className="border border-[#3e4095] text-[#3e4095] font-bold px-5 py-2.5 rounded-xl text-xs transition-all cursor-pointer bg-transparent"
@@ -376,7 +373,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
                 <button
                   onClick={() => {
                     handleLinkClick();
-                    onOpenBooking();
+                    openWhatsApp(WA_MESSAGES.bookDemo);
                   }}
                   className="w-full bg-[#3e4095] hover:bg-[#2e3075] text-white font-bold py-3 rounded-xl text-center transition-all text-xs cursor-pointer border-none"
                 >

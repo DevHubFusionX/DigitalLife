@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -13,7 +13,6 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import WhatsappSticky from './components/WhatsappSticky';
 import Footer from './components/Footer';
-import BookingModal from './components/BookingModal';
 import SessionLoader from './components/SessionLoader';
 
 // Admin imports
@@ -47,12 +46,6 @@ function ScrollToHash() {
 }
 
 function App() {
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-
-  const handleOpenBooking = () => {
-    setIsBookingOpen(true);
-  };
-
   return (
     <Router>
       <SessionLoader>
@@ -75,12 +68,12 @@ function App() {
             path="/*"
             element={
               <div className="min-h-screen bg-[#fffdf5] text-slate-900 antialiased flex flex-col justify-between">
-                <Navbar onOpenBooking={handleOpenBooking} />
+                <Navbar />
                 <main className="grow">
                   <Routes>
-                    <Route path="/" element={<Home onOpenBooking={handleOpenBooking} />} />
-                    <Route path="/about" element={<AboutPage onOpenBooking={handleOpenBooking} />} />
-                    <Route path="/services" element={<ServicesPage onOpenBooking={handleOpenBooking} />} />
+                    <Route path="/" element={<Home />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/services" element={<ServicesPage />} />
                     <Route path="/blog" element={<BlogPage />} />
                     <Route path="/blog/:id" element={<BlogPostPage />} />
                     <Route path="/resources" element={<ResourcesPage />} />
@@ -90,12 +83,8 @@ function App() {
                     <Route path="/terms" element={<TermsPage />} />
                   </Routes>
                 </main>
-                <Footer onOpenBooking={handleOpenBooking} />
+                <Footer />
                 <WhatsappSticky />
-                <BookingModal
-                  isOpen={isBookingOpen}
-                  onClose={() => setIsBookingOpen(false)}
-                />
               </div>
             }
           />
@@ -106,3 +95,4 @@ function App() {
 }
 
 export default App;
+

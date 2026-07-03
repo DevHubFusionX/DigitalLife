@@ -3,12 +3,9 @@ import { ArrowRight, TrendingUp } from 'lucide-react';
 import heroManImg from '../assets/hero_man.png';
 import officeFlatlayImg from '../assets/office_flatlay.png';
 import lemonsImg from '../assets/lemons.png';
+import { SELAR_CLARITY_CALL_URL } from '../lib/whatsapp';
 
-interface HeroProps {
-  onOpenBooking: () => void;
-}
-
-export default function Hero({ onOpenBooking }: HeroProps) {
+export default function Hero() {
   return (
     <section className="relative pt-32 pb-24 overflow-hidden bg-[#fffdf5]">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -24,13 +21,16 @@ export default function Hero({ onOpenBooking }: HeroProps) {
 
           <p className="text-[#717b72] text-sm md:text-[16px] leading-relaxed mb-8 max-w-lg font-medium">
             Gain clarity, boost your visibility, and build a strong operational structure in 6–10 weeks with our hands-on business development support.
-          </p>          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mb-16">
-            <button
-              onClick={onOpenBooking}
-              className="bg-slate-950 hover:bg-slate-800 text-white font-semibold px-8 py-3.5 rounded-full text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-sm w-full sm:w-auto"
+          </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mb-16">
+            <a
+              href={SELAR_CLARITY_CALL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-slate-950 hover:bg-slate-800 text-white font-semibold px-8 py-3.5 rounded-full text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-sm w-full sm:w-auto no-underline"
             >
               Book Your Free Growth Clarity Session <ArrowRight className="h-4 w-4" />
-            </button>
+            </a>
             <Link
               to="/services"
               className="text-slate-900 font-bold text-sm underline underline-offset-4 hover:text-slate-700 transition-colors pl-2 sm:pl-0"

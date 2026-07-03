@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Check, ArrowRight, Database, ChevronLeft, ChevronRight, Lock, Mail, Loader2, Play, ShoppingCart, CreditCard } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play } from 'lucide-react';
 import { useResources } from '../hooks/useResources';
 import { getYouTubeEmbedUrl, extractYouTubeId } from '../lib/youtube';
+import { openWhatsApp } from '../lib/whatsapp';
 
 // ---------------------------------------------------------------------------
 // Legacy JSX preview pages for original 8 seeded resources (IDs 1–3 have
@@ -123,11 +124,9 @@ export default function ResourceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { resources, loading } = useResources();
 
-  const [currentPage, setCurrentPage] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
-  const [teamSize, setTeamSize] = useState('1-5');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -135,17 +134,24 @@ export default function ResourceDetailPage() {
 
   const resource = resources.find((r) => r.id === id) ?? resources[0];
 
-  // Preview pages: use legacy JSX for original resources, else empty
-  const previewPages = id ? PREVIEW_PAGES[id] ?? [] : [];
-
-  const nextPreview = () => setCurrentPage((p) => (p + 1) % previewPages.length);
-  const prevPreview = () => setCurrentPage((p) => (p - 1 + previewPages.length) % previewPages.length);
-
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setIsLoading(true);
-    setTimeout(() => { setIsLoading(false); setFormSubmitted(true); }, 1800);
+    setTimeout(() => {
+      setIsLoading(false);
+      setFormSubmitted(true);
+      
+      // Automatic download trigger
+      const link = document.createElement('a');
+      link.href = resource.downloadUrl || '/logo.svg';
+      link.download = `${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, 1800);
   };
 
   if (loading) {
@@ -172,94 +178,259 @@ export default function ResourceDetailPage() {
 
       {/* BREADCRUMB */}
       <nav className="max-w-7xl mx-auto px-6 py-6 border-b border-black/5">
-        <Link to="/resources" className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-950 transition-colors uppercase tracking-wider">
+        <Link to="/resources" className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-950 transition-colors uppercase tracking-wider no-underline">
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Resources
         </Link>
       </nav>
 
       {/* HERO SECTION */}
-      <section className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        {/* Left: Resource Info */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[10px] font-black uppercase text-[#3e4095] tracking-widest bg-[#3e4095]/5 px-2.5 py-1 rounded-full">{resource.category}</span>
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{resource.format}</span>
-            {resource.isFree ? (
-              <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">Free</span>
-            ) : (
-              <span className="bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">${resource.price?.toFixed(2)}</span>
-            )}
+      <section className="bg-slate-950 text-white py-16 md:py-24 relative overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(62,64,149,0.15),transparent)] pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+          {/* Left: Info */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase text-[#ffd148] tracking-widest bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                # {resource.category}
+              </span>
+              <span className="text-[10px] font-black uppercase text-slate-300 tracking-wider bg-white/5 px-3 py-1.5 rounded-full">
+                {resource.format}
+              </span>
+            </div>
+            
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+              {resource.title}
+            </h1>
+            
+            <p className="text-slate-300 text-sm md:text-base leading-relaxed font-semibold max-w-2xl">
+              {resource.description}
+            </p>
+            
+            <div className="flex items-center gap-4 pt-4">
+              <button
+                onClick={() => {
+                  document.getElementById('access-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-extrabold px-8 py-4 rounded-full text-xs transition-all shadow-lg flex items-center justify-center gap-2 border-none cursor-pointer"
+              >
+                <Download className="w-4 h-4" /> GET ACCESS NOW
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert('Resource link copied to clipboard!');
+                }}
+                className="w-12 h-12 rounded-full border border-white/20 hover:border-white/40 flex items-center justify-center transition-colors cursor-pointer bg-white/5 text-white"
+                title="Share Resource"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.748a3.075 3.075 0 110-1.496m0 1.496a3.075 3.075 0 100 1.496m0-1.496L15.316 15m-6.632-4.252L15.316 9" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight">{resource.title}</h1>
-          <p className="text-slate-500 text-sm md:text-base leading-relaxed font-semibold">{resource.description}</p>
 
-          {(resource.fileSize || resource.softwareRequired) && (
-            <div className="grid grid-cols-2 gap-4 border-y border-black/5 py-6">
-              {resource.fileSize && (
-                <div>
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">File Size</span>
-                  <span className="text-xs font-bold text-slate-950">{resource.fileSize}</span>
+          {/* Right: Mockup Browser Frame */}
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="w-full max-w-md bg-[#1e293b] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Browser bar */}
+              <div className="bg-[#0f172a] px-4 py-3 flex items-center gap-2 border-b border-white/5">
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 block" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 block" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block" />
                 </div>
-              )}
-              {resource.softwareRequired && (
-                <div>
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Software Required</span>
-                  <span className="text-xs font-bold text-slate-950">{resource.softwareRequired}</span>
+                <div className="bg-slate-800/80 text-[10px] text-slate-400 font-semibold px-4 py-1 rounded-md grow mx-4 text-center select-none truncate">
+                  digitalife.ehub/resources/{resource.id}
                 </div>
+              </div>
+              
+              {/* Content area: show CoverImage or Gradient */}
+              <div className="h-64 sm:h-72 relative">
+                {resource.coverImage ? (
+                  <img src={resource.coverImage} alt={resource.title} className="w-full h-full object-contain bg-slate-900" />
+                ) : (
+                  <div className={`w-full h-full bg-linear-to-br ${resource.coverBg} flex flex-col justify-between p-8 text-white`}>
+                    <span className="text-[9px] font-black text-[#ffd148] uppercase tracking-widest">DIGITALIFE</span>
+                    <div>
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-wider block mb-2">{resource.format}</span>
+                      <h3 className="text-white text-xl font-black leading-tight">{resource.coverTitle || resource.title}</h3>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTENT & DETAILS SECTION */}
+      <section className="bg-[#fffdf5] py-16 md:py-20 border-b border-black/5">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Left Column: What's Included & Outcomes */}
+          <div className="lg:col-span-7 space-y-8">
+            {/* White card container for deliverables */}
+            <div className="bg-white border border-black/5 rounded-3xl p-8 shadow-sm space-y-6">
+              <div className="flex items-center gap-2 bg-[#3e4095]/5 border border-[#3e4095]/10 px-4 py-2.5 rounded-full self-start w-fit">
+                <Check className="w-4 h-4 text-white bg-slate-950 rounded-full p-0.5" />
+                <span className="text-[10px] font-black uppercase text-slate-800 tracking-wider">
+                  What's Included In This Package
+                </span>
+              </div>
+              
+              {resource.deliverables && resource.deliverables.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {resource.deliverables.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm font-semibold text-slate-600">
+                      <span className="text-[#ffd148] font-bold mt-0.5 select-none mr-1.5">›</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 font-semibold italic">No deliverables listed.</p>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Right: Preview or Cover Image */}
-        <div className="lg:col-span-6 flex flex-col items-center">
-          <div className="w-full max-w-md bg-white border border-black/10 rounded-3xl overflow-hidden shadow-xl p-4 space-y-4">
-            {resource.coverImage ? (
-              /* Admin-uploaded cover image */
-              <div className="h-64 sm:h-72 rounded-2xl overflow-hidden relative">
-                <img src={resource.coverImage} alt={resource.title} className="w-full h-full object-cover" />
-              </div>
-            ) : previewPages.length > 0 ? (
-              /* Legacy JSX previewer for seeded resources */
-              <>
-                <div className="h-64 sm:h-72 border border-black/5 bg-slate-50 rounded-2xl overflow-hidden relative">
-                  {previewPages[currentPage].contentHtml}
+            {/* Target Outcomes */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-black text-slate-950 uppercase tracking-wider">Target Outcomes & Benefits</h3>
+              {resource.outcomes && resource.outcomes.length > 0 ? (
+                <ul className="space-y-3 p-0 list-none">
+                  {resource.outcomes.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm font-semibold text-slate-600">
+                      <ArrowRight className="w-4 h-4 text-[#3e4095] shrink-0 mt-0.5" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-500 font-semibold italic">No outcomes listed.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Metadata Sidebar Card */}
+          <div className="lg:col-span-5" id="access-section">
+            <div className="bg-slate-950 text-white rounded-3xl p-8 shadow-xl space-y-6">
+              {/* Properties list */}
+              <div className="space-y-4 border-b border-white/10 pb-6">
+                <div className="flex justify-between items-center text-xs font-semibold">
+                  <span className="text-slate-400">Topic Group</span>
+                  <span className="font-bold">{resource.category}</span>
                 </div>
-                <div className="flex justify-between items-center px-2">
-                  <div>
-                    <h5 className="text-[10px] font-black uppercase text-slate-400">PAGE PREVIEW</h5>
-                    <p className="text-xs font-bold text-slate-950 leading-tight">{previewPages[currentPage].title}</p>
-                  </div>
-                  {previewPages.length > 1 && (
-                    <div className="flex items-center gap-2">
-                      <button onClick={prevPreview} className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer"><ChevronLeft className="w-4 h-4 text-slate-700" /></button>
-                      <span className="text-[10px] font-bold text-slate-400">{currentPage + 1}/{previewPages.length}</span>
-                      <button onClick={nextPreview} className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer"><ChevronRight className="w-4 h-4 text-slate-700" /></button>
+                <div className="flex justify-between items-center text-xs font-semibold">
+                  <span className="text-slate-400">File Format</span>
+                  <span className="font-bold">{resource.format}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-semibold">
+                  <span className="text-slate-400">Access Cost</span>
+                  <span className="bg-emerald-600 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                    {resource.isFree ? 'Free' : `$${resource.price?.toFixed(2)}`}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-semibold">
+                  <span className="text-slate-400">Page / File Length</span>
+                  <span className="font-bold">{resource.fileSize || resource.format}</span>
+                </div>
+              </div>
+
+              {/* Informative bullet points */}
+              <div className="space-y-3 text-[11px] font-semibold text-slate-300">
+                <div className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-[#ffd148] shrink-0 mt-0.5" />
+                  <span>Instant secure access link sent immediately after unlocking.</span>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-[#ffd148] shrink-0 mt-0.5" />
+                  <span>No tech setup required. Compatible with Notion/Google Suite/Word/Excel.</span>
+                </div>
+              </div>
+
+              {/* Form/WhatsApp Action Area */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mt-4">
+                {resource.isFree ? (
+                  /* ── FREE RESOURCE: Email Lead-Capture Gate ── */
+                  !formSubmitted ? (
+                    <form onSubmit={handleUnlock} className="space-y-4">
+                      <div>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
+                          Corporate Email
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="email"
+                            placeholder="you@company.com"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
+                          />
+                          <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shadow-md"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Unlocking...
+                          </>
+                        ) : (
+                          <>
+                            Download Resource <Download className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="space-y-4 text-center py-2">
+                      <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <Check className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <p className="text-xs font-bold text-white">Resource Unlocked Successfully!</p>
+                      <a
+                        href={resource.downloadUrl || '/logo.svg'}
+                        download={`${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md no-underline"
+                      >
+                        <FileText className="w-4 h-4" /> Direct Download Link
+                      </a>
                     </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* Fallback gradient cover for resources without preview */
-              <div className={`h-64 sm:h-72 bg-linear-to-br ${resource.coverBg} rounded-2xl flex flex-col justify-between p-8`}>
-                <span className="text-[9px] font-black text-[#ffd148] uppercase tracking-widest">DIGITALIFE</span>
-                <div>
-                  <span className="text-white/60 text-[10px] font-black uppercase tracking-wider block mb-2">{resource.format}</span>
-                  <h3 className="text-white text-xl font-black leading-tight">{resource.coverTitle}</h3>
-                </div>
+                  )
+                ) : (
+                  /* ── PAID RESOURCE: Purchase via WhatsApp ── */
+                  <div className="space-y-4">
+                    <p className="text-xs text-slate-300 font-semibold leading-relaxed">
+                      Click the button below to message our team directly on WhatsApp to purchase and get secure access.
+                    </p>
+                    <button
+                      onClick={() => openWhatsApp(`Hi Digitalife Ehub, I would like to purchase the premium resource "${resource.title}" (${resource.format}).`)}
+                      className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shadow-md"
+                    >
+                      Purchase via WhatsApp <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
 
       {/* YOUTUBE EMBED (if resource has attached video) */}
       {youtubeId && (
-        <section className="max-w-7xl mx-auto px-6 pb-12">
+        <section className="max-w-7xl mx-auto px-6 py-12">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-4">
               <Play className="w-4 h-4 text-rose-500" fill="currentColor" />
-              <h3 className="text-sm font-black text-slate-950 uppercase tracking-wider">Watch Video</h3>
+              <h3 className="text-sm font-black text-slate-950 uppercase tracking-wider">Watch Video Tutorial</h3>
             </div>
             <div className="aspect-video rounded-2xl overflow-hidden border border-black/5 shadow-lg">
               <iframe
@@ -267,173 +438,113 @@ export default function ResourceDetailPage() {
                 title={resource.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                className="w-full h-full"
+                className="w-full h-full border-none"
               />
             </div>
           </div>
         </section>
       )}
 
-      {/* OUTCOMES & DELIVERABLES */}
-      {((resource.deliverables?.length ?? 0) > 0 || (resource.outcomes?.length ?? 0) > 0) && (
-        <section className="max-w-7xl mx-auto px-6 py-12 border-t border-black/5 grid grid-cols-1 md:grid-cols-2 gap-12">
-          {(resource.deliverables?.length ?? 0) > 0 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-black text-slate-950 uppercase tracking-wider">What's Included</h3>
-              <ul className="space-y-3">
-                {resource.deliverables!.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm font-semibold text-slate-600">
-                    <Check className="w-4 h-4 text-[#ffd148] shrink-0 mt-0.5" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {(resource.outcomes?.length ?? 0) > 0 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-black text-slate-950 uppercase tracking-wider">Target Outcomes</h3>
-              <ul className="space-y-3">
-                {resource.outcomes!.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm font-semibold text-slate-600">
-                    <ArrowRight className="w-4 h-4 text-[#3e4095] shrink-0 mt-0.5" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
+      {/* RELATED RESOURCES */}
+      <section className="max-w-7xl mx-auto px-6 py-16 md:py-20">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+          <div>
+            <span className="text-[10px] font-black text-[#3e4095] uppercase tracking-widest block mb-2">RECOMMENDED LEARNING</span>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-950">Related Templates & Playbooks</h2>
+          </div>
+          <Link to="/resources" className="text-xs font-bold text-[#3e4095] hover:text-[#2e3075] transition-colors flex items-center gap-1.5 no-underline">
+            Browse Resource Library <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
 
-      {/* ACCESS GATE */}
-      <section className="max-w-3xl mx-auto px-6 py-12 mt-12">
-        <div className="border border-black/5 bg-white rounded-3xl p-8 shadow-md relative overflow-hidden">
-          <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${resource.isFree ? 'from-[#3e4095] to-[#ffd148]' : 'from-amber-500 to-orange-500'}`} />
-
-          {resource.isFree ? (
-            /* ── FREE RESOURCE: Email Lead-Capture Gate ── */
-            !formSubmitted ? (
-              <div className="space-y-6">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-[#3e4095]" />
-                  <h3 className="text-xl font-bold text-slate-950">Access Gated Resource</h3>
-                </div>
-                <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  Provide your corporate email below to receive instant direct download links and editable templates. We respect your data privacy.
-                </p>
-                <form onSubmit={handleUnlock} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {resources
+            .filter((r) => r.id !== resource.id && r.category === resource.category)
+            .slice(0, 3)
+            .map((item) => (
+              <Link
+                key={item.id}
+                to={`/resources/${item.id}`}
+                className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
+              >
+                {/* Cover */}
+                <div className={`h-40 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-5 flex flex-col justify-between`}>
+                  {item.coverImage && (
+                    <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-contain bg-slate-900" />
+                  )}
+                  <div className="relative z-10 flex flex-col justify-between h-full">
+                    <span className="self-end bg-white/10 backdrop-blur-md border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
+                      {item.format}
+                    </span>
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 block mb-1.5">Corporate Email</label>
-                      <div className="relative">
-                        <input
-                          type="email" placeholder="you@company.com" required value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-[#fffdf5] border border-black/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
-                        />
-                        <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                      <span className="text-[9px] font-black text-[#ffd148] tracking-widest uppercase block mb-0.5">DIGITALIFE</span>
+                      <h3 className="text-white text-sm font-black tracking-tight leading-snug">{item.coverTitle || item.title}</h3>
+                    </div>
+                  </div>
+                </div>
+                {/* Details */}
+                <div className="p-5 flex flex-col justify-between grow">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-extrabold text-[#3e4095] uppercase tracking-wider">{item.category}</span>
+                      {item.isFree ? (
+                        <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">Free</span>
+                      ) : (
+                        <span className="bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">${item.price?.toFixed(2)}</span>
+                      )}
+                    </div>
+                    <h4 className="text-slate-950 text-sm font-bold tracking-tight mb-1 group-hover:text-[#3e4095] transition-colors">{item.title}</h4>
+                    <p className="text-slate-500 text-[11px] font-semibold leading-relaxed line-clamp-2">{item.description}</p>
+                  </div>
+                  <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-950 mt-4 group-hover:text-[#3e4095] transition-colors self-start">
+                    {item.isFree ? 'Download' : `Buy — $${item.price?.toFixed(2)}`} <Download className="w-3 h-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          {resources.filter((r) => r.id !== resource.id && r.category === resource.category).length === 0 && (
+            resources
+              .filter((r) => r.id !== resource.id)
+              .slice(0, 3)
+              .map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/resources/${item.id}`}
+                  className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
+                >
+                  <div className={`h-40 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-5 flex flex-col justify-between`}>
+                    {item.coverImage && (
+                      <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-contain bg-slate-900" />
+                    )}
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                      <span className="self-end bg-white/10 backdrop-blur-md border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
+                        {item.format}
+                      </span>
+                      <div>
+                        <span className="text-[9px] font-black text-[#ffd148] tracking-widest uppercase block mb-0.5">DIGITALIFE</span>
+                        <h3 className="text-white text-sm font-black tracking-tight leading-snug">{item.coverTitle || item.title}</h3>
                       </div>
                     </div>
+                  </div>
+                  <div className="p-5 flex flex-col justify-between grow">
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 block mb-1.5">Team Size</label>
-                      <select value={teamSize} onChange={(e) => setTeamSize(e.target.value)}
-                        className="w-full bg-[#fffdf5] border border-black/10 rounded-xl px-4 py-3.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#3e4095] appearance-none cursor-pointer">
-                        <option value="1-5">1 - 5 team members</option>
-                        <option value="6-20">6 - 20 team members</option>
-                        <option value="21-50">21 - 50 team members</option>
-                        <option value="50+">50+ team members</option>
-                      </select>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-extrabold text-[#3e4095] uppercase tracking-wider">{item.category}</span>
+                        {item.isFree ? (
+                          <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">Free</span>
+                        ) : (
+                          <span className="bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">${item.price?.toFixed(2)}</span>
+                        )}
+                      </div>
+                      <h4 className="text-slate-950 text-sm font-bold tracking-tight mb-1 group-hover:text-[#3e4095] transition-colors">{item.title}</h4>
+                      <p className="text-slate-500 text-[11px] font-semibold leading-relaxed line-clamp-2">{item.description}</p>
                     </div>
+                    <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-950 mt-4 group-hover:text-[#3e4095] transition-colors self-start">
+                      {item.isFree ? 'Download' : `Buy — $${item.price?.toFixed(2)}`} <Download className="w-3 h-3" />
+                    </span>
                   </div>
-                  <button type="submit" disabled={isLoading}
-                    className="w-full bg-slate-950 hover:bg-[#3e4095] text-white font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none">
-                    {isLoading ? (<><Loader2 className="w-4 h-4 animate-spin text-[#ffd148]" /> Assembling Custom PDF…</>) : (<>Unlock & Download Resource <Download className="w-4 h-4" /></>)}
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <div className="text-center py-8 space-y-6">
-                <div className="w-16 h-16 bg-emerald-50 rounded-full border border-emerald-500/10 flex items-center justify-center mx-auto">
-                  <Check className="w-8 h-8 text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black text-slate-950">Resource Unlocked</h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-1">Your customizable file package has been generated.</p>
-                </div>
-                <div className="max-w-md mx-auto space-y-3 pt-4">
-                  <a href="/logo.svg" download="digitalife_resource.svg"
-                    className="w-full bg-[#3e4095] hover:bg-[#2e3075] text-white font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md">
-                    <FileText className="w-4 h-4" /> Direct Download Link (PDF)
-                  </a>
-                  <a href="https://notion.so" target="_blank" rel="noreferrer"
-                    className="w-full bg-transparent hover:bg-slate-50 border border-black/10 text-slate-900 font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
-                    <Database className="w-4 h-4 text-[#3e4095]" /> Open Editable Workspace Template
-                  </a>
-                </div>
-              </div>
-            )
-          ) : (
-            /* ── PAID RESOURCE: Premium Checkout Simulation ── */
-            !formSubmitted ? (
-              <div className="space-y-6">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-amber-600" />
-                  <h3 className="text-xl font-bold text-slate-950">Premium Resource</h3>
-                </div>
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">{resource.title}</p>
-                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">One-time purchase · Instant access</p>
-                  </div>
-                  <span className="text-2xl font-black text-amber-700">${resource.price?.toFixed(2)}</span>
-                </div>
-                <form onSubmit={handleUnlock} className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1.5">Email for Delivery</label>
-                    <div className="relative">
-                      <input
-                        type="email" placeholder="you@company.com" required value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-[#fffdf5] border border-black/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-amber-500"
-                      />
-                      <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                    </div>
-                  </div>
-                  <button type="submit" disabled={isLoading}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shadow-lg">
-                    {isLoading ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Processing Checkout…</>
-                    ) : (
-                      <><CreditCard className="w-4 h-4" /> Buy Now — ${resource.price?.toFixed(2)}</>
-                    )}
-                  </button>
-                  <p className="text-[10px] text-slate-400 font-semibold text-center">
-                    Secure checkout · 30-day money-back guarantee
-                  </p>
-                </form>
-              </div>
-            ) : (
-              <div className="text-center py-8 space-y-6">
-                <div className="w-16 h-16 bg-emerald-50 rounded-full border border-emerald-500/10 flex items-center justify-center mx-auto">
-                  <Check className="w-8 h-8 text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black text-slate-950">Purchase Complete!</h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-1">Your resource is ready for download.</p>
-                </div>
-                <div className="max-w-md mx-auto space-y-3 pt-4">
-                  <a href="/logo.svg" download="digitalife_resource.svg"
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md">
-                    <FileText className="w-4 h-4" /> Download Your Resource
-                  </a>
-                  <a href="https://notion.so" target="_blank" rel="noreferrer"
-                    className="w-full bg-transparent hover:bg-slate-50 border border-black/10 text-slate-900 font-bold py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
-                    <Database className="w-4 h-4 text-[#3e4095]" /> Open Editable Workspace Template
-                  </a>
-                </div>
-              </div>
-            )
+                </Link>
+              ))
           )}
         </div>
       </section>

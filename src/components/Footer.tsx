@@ -1,14 +1,11 @@
 import { motion } from 'framer-motion';
 import TwistingRibbon from './ui/twisting-ribbon';
-import { ArrowUpRight, Mail, MapPin, ArrowUp } from 'lucide-react';
+import { ArrowUpRight, Mail, MapPin, Phone, ArrowUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import FlipText from './ui/flip-text';
+import { getWhatsAppUrl, WA_MESSAGES, CONTACT_EMAIL, CONTACT_ADDRESS, CONTACT_PHONE, SELAR_CLARITY_CALL_URL } from '../lib/whatsapp';
 
-interface FooterProps {
-  onOpenBooking: () => void;
-}
-
-export default function Footer({ onOpenBooking }: FooterProps) {
+export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
@@ -74,38 +71,42 @@ export default function Footer({ onOpenBooking }: FooterProps) {
               </span>
             </div>
             <h3 className="text-white text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-tight mb-4 leading-tight">
-              Let’s Move You From Hustle to Growth.
+              Let's Move You From Hustle to Growth.
             </h3>
             <p className="text-slate-400 text-sm md:text-base font-semibold leading-relaxed max-w-xl">
-              We do not overwhelm you with services. We focus on what truly moves your business forward: Clarity. Structure. Visibility. If you're ready to build intentionally, we’re ready to build with you.
+              We do not overwhelm you with services. We focus on what truly moves your business forward: Clarity. Structure. Visibility. If you're ready to build intentionally, we're ready to build with you.
             </p>
           </div>
 
           {/* Right Buttons */}
           <div className="relative z-10 flex flex-col gap-3.5 w-full md:max-w-md lg:w-80 shrink-0">
-            <motion.button
-              onClick={onOpenBooking}
+            <motion.a
+              href={SELAR_CLARITY_CALL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-white hover:bg-slate-100 text-slate-950 font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none text-center"
+              className="bg-white hover:bg-slate-100 text-slate-950 font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none text-center no-underline"
             >
               Book a Growth Consultation
               <ArrowUpRight className="w-3.5 h-3.5" />
-            </motion.button>
-            <motion.button
-              onClick={onOpenBooking}
+            </motion.a>
+            <motion.a
+              href={`tel:${CONTACT_PHONE}`}
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-transparent border border-white/20 hover:border-white/40 text-white font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+              className="bg-transparent border border-white/20 hover:border-white/40 text-white font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center no-underline"
             >
               Speak With Our Team
-            </motion.button>
-            <Link
-              to="/community"
-              className="bg-[#ffd148] hover:bg-[#ffd148]/95 text-black font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none text-center"
+            </motion.a>
+            <a
+              href={getWhatsAppUrl(WA_MESSAGES.joinCommunity)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#ffd148] hover:bg-[#ffd148]/95 text-black font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none text-center no-underline"
             >
               Join our Community
-            </Link>
+            </a>
           </div>
 
         </div>
@@ -177,13 +178,19 @@ export default function Footer({ onOpenBooking }: FooterProps) {
             <div className="flex flex-col gap-4 font-semibold text-sm text-[#717b72]">
               <div className="flex items-start gap-2.5">
                 <Mail className="w-4.5 h-4.5 text-slate-900/40 shrink-0 mt-0.5" />
-                <a href="mailto:info@digitalifeehub.com" className="hover:text-slate-950 transition-colors">
-                  info@digitalifeehub.com
+                <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-slate-950 transition-colors">
+                  {CONTACT_EMAIL}
+                </a>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Phone className="w-4.5 h-4.5 text-slate-900/40 shrink-0 mt-0.5" />
+                <a href={`tel:${CONTACT_PHONE}`} className="hover:text-slate-950 transition-colors">
+                  {CONTACT_PHONE}
                 </a>
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4.5 h-4.5 text-slate-900/40 shrink-0 mt-0.5" />
-                <span>Lagos, Nigeria</span>
+                <span>{CONTACT_ADDRESS}</span>
               </div>
             </div>
           </div>
@@ -215,7 +222,7 @@ export default function Footer({ onOpenBooking }: FooterProps) {
         {/* Legal Disclaimer Subfooter */}
         <div className="border-t border-slate-900/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-6 text-xs font-semibold text-[#717b72]">
           <div className="flex items-center gap-2">
-            <span>© Copyright {currentYear} Digitalife Ehub. All Rights Reserved.</span>
+            <span>&copy; Copyright {currentYear} Digitalife Ehub. All Rights Reserved.</span>
           </div>
           <div className="flex items-center gap-6">
             <Link to="/privacy" className="hover:text-slate-950 transition-colors">Privacy Policy</Link>

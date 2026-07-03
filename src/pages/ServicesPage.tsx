@@ -1,12 +1,10 @@
 import { useEffect } from 'react';
 import { Compass, Share2, Layers, Globe, BookOpen, ArrowRight, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import TwistingRibbon from '../components/ui/twisting-ribbon';
+import { openWhatsApp, WA_MESSAGES } from '../lib/whatsapp';
 
-interface ServicesPageProps {
-  onOpenBooking: () => void;
-}
-
-export default function ServicesPage({ onOpenBooking }: ServicesPageProps) {
+export default function ServicesPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = "Services | SOP Development & Small Business Formalization | Digitalife Ehub";
@@ -120,7 +118,7 @@ export default function ServicesPage({ onOpenBooking }: ServicesPageProps) {
         </p>
       </section>
 
-      {/* 2. Creative Staggered Layout with Sticky Column (Exactly 1 CTA here) */}
+      {/* 2. Creative Staggered Layout with Sticky Column */}
       <section className="py-10 max-w-5xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           
@@ -132,12 +130,14 @@ export default function ServicesPage({ onOpenBooking }: ServicesPageProps) {
               <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6">
                 Book a consultation with our strategy and systems team to map out your implementation roadmap.
               </p>
-              <button
-                onClick={onOpenBooking}
-                className="w-full bg-slate-950 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-full text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+              <motion.button
+                onClick={() => openWhatsApp(WA_MESSAGES.strategySession)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-slate-950 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-full text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm border-none"
               >
                 Book a Strategy Session <ArrowRight className="w-4 h-4" />
-              </button>
+              </motion.button>
             </div>
           </div>
 
@@ -177,6 +177,19 @@ export default function ServicesPage({ onOpenBooking }: ServicesPageProps) {
                   <span className="font-extrabold not-italic text-[10px] text-slate-500 uppercase tracking-wider mr-1.5">Perfect for:</span>
                   {service.perfectFor}
                 </div>
+
+                {/* Animated WhatsApp Inquiry Button */}
+                <div className="mt-4 pt-2">
+                  <motion.button
+                    onClick={() => openWhatsApp(`Hi Digitalife Ehub, I would like to inquire about your "${service.title}" service.`)}
+                    whileHover={{ scale: 1.03, x: 4 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="inline-flex items-center gap-2 bg-[#ffd148] hover:bg-[#ffd148]/90 text-black font-extrabold px-6 py-3 rounded-full text-[10px] tracking-wider uppercase transition-all cursor-pointer shadow-xs border-none group"
+                  >
+                    Inquire via WhatsApp 
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </motion.button>
+                </div>
               </div>
             ))}
           </div>
@@ -205,12 +218,14 @@ export default function ServicesPage({ onOpenBooking }: ServicesPageProps) {
             </p>
           </div>
 
-          <button
-            onClick={onOpenBooking}
-            className="relative z-10 w-full md:w-auto bg-[#ffd148] hover:bg-[#ffd148]/90 text-black font-extrabold px-8 py-4 rounded-full text-xs transition-all cursor-pointer shadow-lg text-center"
+          <motion.button
+            onClick={() => openWhatsApp(WA_MESSAGES.claimConsultation)}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="relative z-10 w-full md:w-auto bg-[#ffd148] hover:bg-[#ffd148]/90 text-black font-extrabold px-8 py-4 rounded-full text-xs transition-all cursor-pointer shadow-lg text-center border-none"
           >
             Claim Free Consultation
-          </button>
+          </motion.button>
         </div>
       </section>
 

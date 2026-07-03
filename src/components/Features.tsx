@@ -1,10 +1,13 @@
 import { useState, useRef } from 'react';
 import { Play, X, Plus, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import teamCollaborationImg from '../assets/team_collaboration.png';
 import SharedTooltipAvatars from './SharedTooltipAvatars';
+import { openWhatsApp, WA_MESSAGES } from '../lib/whatsapp';
 
 export default function Features() {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHoveringTeam, setIsHoveringTeam] = useState(false);
@@ -189,7 +192,7 @@ export default function Features() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
                 {steps.map((step, idx) => (
                   <div key={idx} className="bg-white/60 border border-black/5 p-5 rounded-2xl flex flex-col gap-2 hover:border-[#ffd148]/30 hover:bg-white transition-all">
-                    <h4 className="font-bold text-slate-900 flex items-center gap-1.5 text-sm md:text-base">
+                    <h4 className="font-bold text-slate-950 flex items-center gap-1.5 text-sm md:text-base">
                       <ChevronRight className="w-4 h-4 text-[#ffd148] shrink-0" /> {step.title}
                     </h4>
                     <p className="text-xs md:text-sm text-[#717b72] leading-relaxed font-semibold">
@@ -201,13 +204,19 @@ export default function Features() {
 
               <div className="mt-8 pt-6 border-t border-black/5 flex flex-col sm:flex-row gap-3 justify-end">
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="border border-slate-900 text-slate-900 font-semibold px-6 py-2.5 rounded-full text-xs md:text-sm hover:bg-slate-900 hover:text-white transition-all cursor-pointer bg-transparent w-full sm:w-auto text-center"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    navigate('/resources');
+                  }}
+                  className="border border-slate-900 text-slate-900 font-semibold px-6 py-2.5 rounded-full text-xs md:text-sm hover:bg-slate-900 hover:text-white transition-all cursor-pointer bg-transparent w-full sm:w-auto text-center animate-pulse"
                 >
                   Download free Structure checklist
                 </button>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    openWhatsApp(WA_MESSAGES.getStarted);
+                  }}
                   className="bg-slate-950 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-full text-xs md:text-sm transition-all cursor-pointer w-full sm:w-auto text-center"
                 >
                   Start My Growth Journey

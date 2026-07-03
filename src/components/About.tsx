@@ -1,11 +1,8 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Palette, BarChart3, CheckCircle2 } from 'lucide-react';
+import { SELAR_CLARITY_CALL_URL } from '../lib/whatsapp';
 
-interface AboutProps {
-  onOpenBooking: () => void;
-}
-
-export default function About({ onOpenBooking }: AboutProps) {
+export default function About() {
   const capabilities = [
     {
       id: 'clarity',
@@ -222,14 +219,16 @@ export default function About({ onOpenBooking }: AboutProps) {
             </div>
 
             {/* Contact Callout */}
-            <motion.button
-              onClick={onOpenBooking}
+            <motion.a
+              href={SELAR_CLARITY_CALL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ x: 6 }}
               className="inline-flex items-center gap-2 text-slate-900 font-bold text-sm hover:text-[#ffd148] transition-colors group cursor-pointer bg-transparent border-none p-0"
             >
               Book a 30 minutes clarity call
               <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </motion.button>
+            </motion.a>
           </div>
 
           {/* Right Column: High Fidelity Capability Cards Stack */}

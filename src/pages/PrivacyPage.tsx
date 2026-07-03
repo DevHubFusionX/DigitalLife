@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
+import { CONTACT_EMAIL } from '../lib/whatsapp';
 
 export default function PrivacyPage() {
   useEffect(() => {
@@ -75,8 +76,8 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-slate-950">5. Contact Us</h2>
             <p>
               If you have any questions, concerns, or requests regarding your personal information, please feel free to reach out to us at{' '}
-              <a href="mailto:info@digitalifeehub.com" className="text-[#3e4095] font-bold underline">
-                info@digitalifeehub.com
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#3e4095] font-bold underline">
+                {CONTACT_EMAIL}
               </a>.
             </p>
           </div>

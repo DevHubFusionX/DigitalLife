@@ -5,11 +5,7 @@ import About from '../components/About';
 import Testimonials from '../components/Testimonials';
 import FAQ from '../components/FAQ';
 
-interface HomeProps {
-  onOpenBooking: () => void;
-}
-
-export default function Home({ onOpenBooking }: HomeProps) {
+export default function Home() {
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = "Digitalife Ehub | Business Structure Consultant & MSME Growth Framework";
@@ -35,9 +31,9 @@ export default function Home({ onOpenBooking }: HomeProps) {
 
   return (
     <>
-      <Hero onOpenBooking={onOpenBooking} />
+      <Hero />
       <Features />
-      <About onOpenBooking={onOpenBooking} />
+      <About />
       <Testimonials />
       <FAQ />
     </>

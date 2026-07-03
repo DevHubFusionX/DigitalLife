@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Check, MessageCircle } from 'lucide-react';
+import { getWhatsAppUrl } from '../lib/whatsapp';
 
 export default function WhatsappSticky() {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Default phone number and message for Nigeria (adjust code if necessary)
-  const phoneNumber = "2348123456789"; 
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hi%20Digitalife%20Ehub,%20I%20am%20interested%20in%20scaling%20and%20structuring%20my%20business.`;
+  const whatsappUrl = getWhatsAppUrl();
 
   // Spring transition variants for the chat window (Cushioned "bed/spring" effect)
   const chatVariants = {

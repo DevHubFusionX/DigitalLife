@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { X, Plus, Minus, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Plus, Minus, Loader2, Upload } from 'lucide-react';
 import type { Resource } from '../../types/resource';
 import CoverUpload from './CoverUpload';
 import { addResource, updateResource } from '../../lib/firestore/resources';
 import { useMetadata } from '../../hooks/useMetadata';
+import { uploadResourceFile } from '../../lib/cloudinary';
 
 const GRADIENT_OPTIONS = [
   { label: 'Dark Navy', value: 'from-[#0f172a] to-[#1e293b]' },
@@ -31,6 +32,8 @@ const EMPTY: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'> = {
   outcomes: [''],
   isFree: true,
   price: 0,
+  featured: false,
+  downloadUrl: '',
 };
 
 interface ResourceFormProps {
@@ -43,6 +46,27 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
   const [form, setForm] = useState<typeof EMPTY>({ ...EMPTY });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileUploading, setFileUploading] = useState(false);
+  const [fileProgress, setFileProgress] = useState(0);
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileError(null);
+    setFileUploading(true);
+    setFileProgress(0);
+    try {
+      const url = await uploadResourceFile(file, setFileProgress);
+      setForm((prev) => ({ ...prev, downloadUrl: url }));
+    } catch (err) {
+      setFileError(err instanceof Error ? err.message : 'File upload failed.');
+    } finally {
+      setFileUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (editTarget) {
@@ -62,7 +86,7 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
-  const handleCheckboxChange = (field: 'isFree') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckboxChange = (field: 'isFree' | 'featured') => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.checked }));
   };
 
@@ -94,6 +118,12 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
         deliverables: (form.deliverables ?? []).filter(Boolean),
         outcomes: (form.outcomes ?? []).filter(Boolean),
         coverImage: form.coverImage ?? null,
+        downloadUrl: form.downloadUrl || null,
+        // Compatibility fields for legacy database schema
+        topic: form.category,
+        coverUrl: form.coverImage ?? null,
+        coverGradient: form.coverBg,
+        contentType: form.isFree ? 'Free' : 'Premium',
       };
       if (editTarget) {
         await updateResource(editTarget.id, payload);
@@ -239,6 +269,69 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* File Upload Section */}
+            <div className="sm:col-span-2 space-y-2">
+              <label className={labelCls}>Resource File (PDF, DOCX, ZIP, etc.)</label>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="text"
+                  value={form.downloadUrl || ''}
+                  onChange={set('downloadUrl')}
+                  placeholder="Paste direct download URL or upload a file..."
+                  className="grow bg-slate-50 border border-black/10 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
+                />
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.doc,.zip,.xlsx,.xls,.pptx,.ppt,.txt,.csv"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                
+                <button
+                  type="button"
+                  disabled={fileUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-3 bg-[#3e4095] hover:bg-[#2e3075] text-white font-bold rounded-xl text-xs transition-colors whitespace-nowrap disabled:opacity-50 flex items-center gap-1.5 cursor-pointer border-none shadow-sm"
+                >
+                  {fileUploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {fileProgress}% Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      Upload File
+                    </>
+                  )}
+                </button>
+              </div>
+              {fileError && <p className="text-[10px] font-bold text-rose-500 mt-1">{fileError}</p>}
+            </div>
+
+            {/* Featured Section */}
+            <div className="sm:col-span-2 border border-black/5 bg-slate-50 p-4 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <input
+                  id="featured"
+                  type="checkbox"
+                  checked={form.featured || false}
+                  onChange={handleCheckboxChange('featured')}
+                  className="w-4 h-4 text-[#3e4095] border-black/10 rounded-sm focus:ring-[#3e4095]"
+                />
+                <div>
+                  <label htmlFor="featured" className="text-xs font-bold text-slate-900 block cursor-pointer">
+                    Featured Resource
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-semibold block">
+                    Display prominently in the Featured section on the Resources page.
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* File Size */}

@@ -1,11 +1,8 @@
 import { useEffect } from 'react';
 import { ArrowRight, Compass, Eye, Layers, Share2, Globe } from 'lucide-react';
+import { openWhatsApp, WA_MESSAGES, SELAR_CLARITY_CALL_URL } from '../lib/whatsapp';
 
-interface AboutPageProps {
-  onOpenBooking: () => void;
-}
-
-export default function AboutPage({ onOpenBooking }: AboutPageProps) {
+export default function AboutPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = 'About Us | Digitalife Ehub — Business Development & Brand Management';
@@ -104,7 +101,7 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
               Imagine running a business with all of this in place. That's exactly what we help you build.
             </p>
             <button
-              onClick={onOpenBooking}
+              onClick={() => openWhatsApp(WA_MESSAGES.getStarted)}
               className="inline-flex items-center gap-2 bg-slate-950 hover:bg-[#3e4095] text-white font-black px-7 py-4 rounded-full text-xs transition-all border-none cursor-pointer"
             >
               Get Started <ArrowRight className="w-3.5 h-3.5" />
@@ -129,12 +126,14 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
             <p className="text-slate-400 text-sm leading-relaxed font-semibold">
               We are not just advisors. We build with you — bringing clarity to your direction, structure to your operations, and visibility to your brand.
             </p>
-            <button
-              onClick={onOpenBooking}
-              className="inline-flex items-center gap-2 border border-white/20 hover:border-[#ffd148] text-white hover:text-[#ffd148] font-bold px-6 py-3.5 rounded-full text-xs transition-all bg-transparent cursor-pointer"
+            <a
+              href={SELAR_CLARITY_CALL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 border border-white/20 hover:border-[#ffd148] text-white hover:text-[#ffd148] font-bold px-6 py-3.5 rounded-full text-xs transition-all bg-transparent cursor-pointer no-underline"
             >
               Book a 30-Minute Clarity Call <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </a>
           </div>
         </div>
       </section>
@@ -170,7 +169,7 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
 
         <div className="mt-10 flex flex-col sm:flex-row gap-3">
           <button
-            onClick={onOpenBooking}
+            onClick={() => openWhatsApp(WA_MESSAGES.getStarted)}
             className="inline-flex items-center justify-center gap-2 bg-slate-950 hover:bg-[#3e4095] text-white font-black px-7 py-4 rounded-full text-xs transition-all border-none cursor-pointer"
           >
             Start Your Growth Journey <ArrowRight className="w-3.5 h-3.5" />
@@ -219,7 +218,7 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
           Our approach is practical. Strategic. Tailored. No fluff. Just structured growth support that works.
         </p>
         <button
-          onClick={onOpenBooking}
+          onClick={() => openWhatsApp(WA_MESSAGES.getStarted)}
           className="inline-flex items-center gap-2 bg-[#3e4095] hover:bg-[#2e3075] text-white font-black px-8 py-4 rounded-full text-sm transition-all border-none cursor-pointer shadow-lg"
         >
           💡 Let's Build Your Next Level <ArrowRight className="w-4 h-4" />

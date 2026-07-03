@@ -2,7 +2,6 @@ import {
   collection,
   doc,
   addDoc,
-  updateDoc,
   deleteDoc,
   onSnapshot,
   serverTimestamp,
@@ -44,6 +43,17 @@ export function subscribeToResources(
         return {
           ...data,
           id: d.id,
+          title: data.title || '',
+          category: data.category || data.topic || '',
+          format: data.format || '',
+          description: data.description || '',
+          coverBg: data.coverBg || data.coverGradient || 'from-[#0f172a] to-[#1e293b]',
+          coverTitle: data.coverTitle || data.title || '',
+          coverImage: data.coverImage || data.coverUrl || null,
+          isFree: data.isFree !== undefined ? data.isFree : (data.contentType === 'Free' ? true : false),
+          price: data.price !== undefined ? data.price : (data.contentType === 'Free' ? 0 : (data.price || 0)),
+          featured: data.featured === true || String(data.featured) === 'true',
+          downloadUrl: data.downloadUrl || null,
           createdAt: toIso(data.createdAt),
           updatedAt: toIso(data.updatedAt),
         } as Resource;
@@ -70,10 +80,10 @@ export async function updateResource(
   id: string,
   data: Partial<Omit<Resource, 'id' | 'createdAt'>>
 ) {
-  return updateDoc(doc(db, COLLECTION, id), {
+  return setDoc(doc(db, COLLECTION, id), {
     ...data,
     updatedAt: serverTimestamp(),
-  });
+  }, { merge: true });
 }
 
 /** Deletes a resource document by ID. */

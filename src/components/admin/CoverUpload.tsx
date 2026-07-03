@@ -66,7 +66,7 @@ export default function CoverUpload({
           <img
             src={currentImageUrl}
             alt="Cover"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-slate-900"
           />
         ) : (
           <div className={`w-full h-full bg-linear-to-br ${gradientClasses} flex items-center justify-center`}>
