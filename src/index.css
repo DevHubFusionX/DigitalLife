@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Mulish', system-ui, sans-serif;
+}
+
+body {
+  background-color: #fffdf5;
+  color: #0f172a;
+}
+
+@keyframes flip-text-anim {
+  0% {
+    transform: rotateX(0deg);
+  }
+  15%, 100% {
+    transform: rotateX(360deg);
+  }
+}
+
+.flip-char {
+  animation: flip-text-anim var(--flip-duration, 2.2s) cubic-bezier(0.76, 0, 0.24, 1) var(--flip-delay, 0s) var(--flip-iteration, infinite);
+}
+

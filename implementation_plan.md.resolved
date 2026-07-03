@@ -1,0 +1,103 @@
+# Implementation Plan: Firestore-Driven Blog CRUD
+
+Migrating the current hardcoded blog system (in `BlogPage.tsx` and `BlogPostPage.tsx`) to a dynamic, real-time Firestore database with full CRUD capabilities in the admin dashboard.
+
+---
+
+## Proposed Changes
+
+### 1. Types & Data Layer
+
+#### [NEW] [blog.ts](file:///home/frank/Documents/digitalife/src/types/blog.ts)
+- Define TypeScript interfaces for `BlogPost` and `BlogSection`.
+- Properties:
+  - `id`: string (slug for SEO-friendly URLs, e.g. `systems-first-scaling` instead of numeric IDs)
+  - `title`: string
+  - `subtitle`: string
+  - `category`: string (can share categories with resources or define independent ones)
+  - `date`: string (formatted creation date, e.g. "Sep 19, 2026")
+  - `author`: string
+  - `authorRole`: string
+  - `readTime`: string (auto-calculated from word count)
+  - `coverBg`: string (gradient fallback)
+  - `coverLabel`: string (card display label)
+  - `introduction`: string
+  - `sections`: `BlogSection[]` (each section has a `heading`, `anchor`, and array of `paragraphs` or text)
+  - `keyTakeaway`: string
+  - `createdAt`, `updatedAt`: Firestore timestamps or ISO strings
+
+#### [NEW] [blog.ts](file:///home/frank/Documents/digitalife/src/lib/firestore/blog.ts)
+- Implement CRUD operations for the `posts` Firestore collection:
+  - `subscribeToPosts(callback)`: Real-time listeners.
+  - `addPost(slug: string, data: Omit<BlogPost, 'id'>)`: Create new post.
+  - `updatePost(id: string, data: Partial<BlogPost>)`: Update existing post.
+  - `deletePost(id: string)`: Delete post.
+  - `seedDefaultPosts()`: Wipe all posts and seed the 9 original hardcoded posts from the current blog files into Firestore.
+
+#### [NEW] [useBlog.ts](file:///home/frank/Documents/digitalife/src/hooks/useBlog.ts)
+- Real-time React hook `useBlog()` that returns:
+  - `posts`: Array of all blog posts
+  - `loading`: boolean
+  - `error`: Error | null
+
+---
+
+### 2. Admin Interface
+
+#### [NEW] [AdminBlogPage.tsx](file:///home/frank/Documents/digitalife/src/pages/admin/AdminBlogPage.tsx)
+- Renders a table of all posts with columns: Title, Category, Author, Date, and Actions.
+- Search input to filter posts by title/author.
+- "Add Post" button opening the form modal.
+- "Edit" and "Delete" button controls.
+- "Reset & Seed Blog" button in Settings or here to restore the original articles.
+
+#### [NEW] [BlogForm.tsx](file:///home/frank/Documents/digitalife/src/components/admin/BlogForm.tsx)
+- Form modal to handle adding/editing a blog post.
+- Fields:
+  - Title, Subtitle, Author, AuthorRole, Category (drawn dynamically from `useMetadata`), Cover BG (with gradient picker), Cover Label, Key Takeaway.
+  - Introduction (textarea).
+  - Dynamic Sections builder: allow users to add multiple sections. Each section has a Heading and a Content textarea. (Paragraphs are automatically split on double newlines `\n\n` on save).
+  - URL Slug (generated from Title with override capability).
+- Auto-calculates `readTime` based on total words in introduction + sections.
+
+#### [MODIFY] [AdminSidebar.tsx](file:///home/frank/Documents/digitalife/src/components/admin/AdminSidebar.tsx)
+- Add "Blog Posts" tab in the admin navigation with a book icon.
+
+#### [MODIFY] [AdminDashboardPage.tsx](file:///home/frank/Documents/digitalife/src/pages/admin/AdminDashboardPage.tsx)
+- Add a stats card showing the total count of blog posts.
+
+#### [MODIFY] [AdminSettingsPage.tsx](file:///home/frank/Documents/digitalife/src/pages/admin/AdminSettingsPage.tsx)
+- Integrate a "Reset & Seed Blog Posts" button under the seed section.
+
+#### [MODIFY] [App.tsx](file:///home/frank/Documents/digitalife/src/App.tsx)
+- Register route `/admin/blog` pointing to `AdminBlogPage`.
+
+---
+
+### 3. Public Pages Refactoring
+
+#### [MODIFY] [BlogPage.tsx](file:///home/frank/Documents/digitalife/src/pages/BlogPage.tsx)
+- Replace local state arrays with data fetched from `useBlog()`.
+- Sort by date or creation time.
+- Update filters and search queries to run against Firestore data.
+
+#### [MODIFY] [BlogPostPage.tsx](file:///home/frank/Documents/digitalife/src/pages/BlogPostPage.tsx)
+- Retrieve current post by string slug (using `:id` parameter from react-router).
+- Subscribe/fetch single post from the post list.
+- Fallback safely to loading/not-found states.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Type checking: `npx tsc --noEmit`
+- Build test: `pnpm build`
+
+### Manual Verification
+1. Login to admin panel, navigate to settings, and click "Reset & Seed Blog Posts".
+2. Go to the new "Blog Posts" tab, click "Add Post", write a new test post with sections, and save it.
+3. Edit the post and confirm changes persist.
+4. Go to the public Blog page, verify the new post is visible and category filtering works.
+5. Click on the post to navigate to its SEO-friendly URL, verifying layout and content look premium.
+6. Delete the post from the admin table and confirm it disappears from public view.
