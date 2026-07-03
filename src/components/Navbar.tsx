@@ -195,7 +195,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
                     <div className="md:col-span-5 bg-[#3e4095]/2 border border-black/5 rounded-2xl p-4 flex flex-col justify-between">
                       <div>
                         <span className="text-[9px] font-black text-[#ffd148] uppercase tracking-widest mb-2 block bg-[#3e4095]/10 px-2 py-0.5 rounded-md w-fit">Ecosystem</span>
-                        <h4 className="text-xs font-bold text-slate-950 mb-1 leading-snug">Free MSME Community</h4>
+                        <h4 className="text-xs font-bold text-slate-950 mb-1 leading-snug"> MSME Community</h4>
                         <p className="text-slate-400 text-[10px] font-semibold leading-relaxed">
                           Collaborate and progress with founders.
                         </p>
@@ -356,7 +356,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
                   <div className="pl-4 py-2 flex flex-col gap-2.5 mt-1 border-l-2 border-[#ffd148]">
                     <Link to="/resources" onClick={handleLinkClick} className="text-xs font-bold text-slate-600 hover:text-slate-950">Resource Library</Link>
                     <Link to="/blog" onClick={handleLinkClick} className="text-xs font-bold text-slate-600 hover:text-slate-950">Blog & Insights</Link>
-                    <Link to="/community" onClick={handleLinkClick} className="text-xs font-bold text-slate-600 hover:text-slate-950">Free Community</Link>
+                    <Link to="/community" onClick={handleLinkClick} className="text-xs font-bold text-slate-600 hover:text-slate-950"> Community</Link>
                   </div>
                 )}
               </div>
