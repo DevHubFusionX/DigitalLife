@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight, Check, Loader2, Target } from 'lucide-react';
+import { ArrowRight, Check, Loader2, Target, Calendar } from 'lucide-react';
+import { LightLines } from '../components/ui/light-lines';
 
 interface Training {
   id: number;
@@ -65,58 +66,98 @@ export default function CommunityPage() {
   return (
     <div className="bg-[#fffdf5]">
 
-      {/* ─── HERO ──────────────────────────────────────────────────── */}
-      <section className="min-h-screen bg-slate-950 flex flex-col justify-between px-6 pt-32 pb-16 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#3e4095]/20 blur-[120px] rounded-full pointer-events-none" />
+      {/* ─── NEW IMAGE-INSPIRED DITTO HERO ─────────────────────── */}
+      <section className="relative min-h-[90vh] flex flex-col justify-between overflow-hidden pt-32 pb-16 px-6 sm:px-12 bg-slate-950">
+        
+        {/* LightLines Background */}
+        <LightLines
+          gradientFrom="#060713"
+          gradientTo="#0c0e29"
+          lightColor="#ffd148"
+          lineColor="#ffd148"
+          linesOpacity={0.08}
+          lightsOpacity={0.4}
+        />
 
-        <div className="relative z-10 flex items-center gap-3 max-w-7xl mx-auto w-full">
-          <span className="w-8 h-px bg-[#ffd148]" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#ffd148]">
-            Digitalife Ehub · Premium Community
-          </span>
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto w-full flex-1 flex flex-col justify-center py-20">
-          <h1 className="text-[clamp(4rem,14vw,11rem)] font-black text-white leading-none tracking-tighter">
-            Visibility<br />
-            <span className="text-[#3e4095]">Clan</span>
-          </h1>
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl">
-            <p className="text-slate-400 text-base leading-relaxed font-semibold">
-              A premium business growth community purpose-built to help young entrepreneurs, MSMEs, and startups across Nigeria and Africa find the clarity, structure, and visibility they need to compete, scale, and win.
-            </p>
-            <div className="flex flex-col justify-end gap-3">
-              <a
-                href="https://slack.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#ffd148] hover:bg-[#f5c800] text-slate-950 font-black px-8 py-4 rounded-full text-xs transition-all w-fit"
-              >
-                Join VClan — It's Free <ArrowRight className="w-3.5 h-3.5" />
-              </a>
-              <button
-                onClick={() => document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-xs font-bold text-slate-500 hover:text-white transition-colors text-left cursor-pointer bg-transparent border-none w-fit"
-              >
-                Explore cohort programs ↓
-              </button>
+        {/* Content Wrapper */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full flex-1 flex flex-col justify-center gap-12">
+          
+          {/* Top Headline Grid */}
+          <div className="space-y-4">
+            <h1 className="text-5xl sm:text-7xl lg:text-[8rem] font-black text-white leading-none tracking-tight">
+              Visibility Clan.
+            </h1>
+            
+            {/* Split layout for line 2 and description */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
+              <div className="lg:col-span-8">
+                <span className="text-4xl sm:text-6xl lg:text-[6.5rem] font-black text-[#ffd148]/90 leading-none tracking-tight block">
+                  Structured & Seen.
+                </span>
+              </div>
+              <div className="lg:col-span-4 lg:pb-3">
+                <p className="text-slate-400 text-xs sm:text-sm font-semibold leading-relaxed max-w-sm">
+                  The premier business growth ecosystem for African builders. Find clarity, implement operational structure, and scale brand visibility.
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a
+              href="https://slack.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-[#ffd148] hover:bg-[#e6bd3e] text-slate-950 font-extrabold px-8 py-4 rounded-full text-xs transition-all shadow-md group border-none"
+            >
+              <span className="w-5 h-5 rounded-full bg-slate-950/10 flex items-center justify-center font-black">→</span>
+              Join our Community
+            </a>
+            <button
+              onClick={() => document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })}
+              className="inline-flex items-center justify-center gap-2 border border-white/20 hover:border-white text-white font-bold px-8 py-4 rounded-full text-xs transition-all bg-transparent cursor-pointer"
+            >
+              Explore Cohort Programs
+            </button>
+          </div>
+
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full border-t border-white/10 pt-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { n: '1,200+', l: 'Founders & entrepreneurs' },
-            { n: '4 Pillars', l: 'Education · Mentorship · Tech · Community' },
-            { n: '6–10 Wks', l: 'Clarity-to-structure timeline' },
-            { n: 'Nigeria & Africa', l: 'Region we serve' },
-          ].map(s => (
-            <div key={s.n}>
-              <p className="text-white font-black text-lg tracking-tight">{s.n}</p>
-              <p className="text-slate-500 text-[11px] font-semibold mt-0.5">{s.l}</p>
+        {/* Bottom stats & featured badge footer row */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full border-t border-white/10 pt-10 mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          
+          {/* Stats on the left */}
+          <div className="flex flex-wrap gap-8 sm:gap-12">
+            <div>
+              <p className="text-white font-black text-lg tracking-tight">1,200+</p>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mt-0.5">Active Builders</p>
             </div>
-          ))}
+            <div>
+              <p className="text-white font-black text-lg tracking-tight">4 Pillars</p>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mt-0.5">Education · Mentorship · Tech · Tribe</p>
+            </div>
+            <div>
+              <p className="text-white font-black text-lg tracking-tight">6–10 Wks</p>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mt-0.5">Clarity to Structure</p>
+            </div>
+          </div>
+
+          {/* Featured Cohort Badge Card on the right */}
+          <div className="bg-slate-900/60 border border-white/5 p-3 rounded-2xl flex items-center gap-3 max-w-sm">
+            <div className="w-8 h-8 bg-[#ffd148]/10 rounded-lg flex items-center justify-center text-[#ffd148] shrink-0">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-white uppercase tracking-wider leading-none">New Cohort</p>
+              <p className="text-slate-400 text-[11px] font-semibold mt-1 leading-snug">
+                Applications open for Summer 2026 cohort programs.
+              </p>
+            </div>
+          </div>
+
         </div>
+
       </section>
 
       {/* ─── WHO WE ARE ────────────────────────────────────────────── */}

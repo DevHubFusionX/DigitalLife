@@ -152,7 +152,7 @@ export default function AboutPage({ onOpenBooking }: AboutPageProps) {
           {pillars.map((p) => (
             <div
               key={p.num}
-              className="py-8 border-b border-black/10 grid grid-cols-1 md:grid-cols-12 gap-6 items-start hover:bg-[#3e4095]/[0.02] px-2 transition-colors duration-200 group"
+              className="py-8 border-b border-black/10 grid grid-cols-1 md:grid-cols-12 gap-6 items-start hover:bg-[#3e4095]/2 px-2 transition-colors duration-200 group"
             >
               <div className="md:col-span-1 text-slate-300 font-bold text-sm">{p.num}</div>
               <div className="md:col-span-4 flex items-center gap-3">

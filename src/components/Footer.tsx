@@ -104,7 +104,7 @@ export default function Footer({ onOpenBooking }: FooterProps) {
               to="/community"
               className="bg-[#ffd148] hover:bg-[#ffd148]/95 text-black font-bold px-7 py-4 rounded-full text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none text-center"
             >
-              Join our free Community
+              Join our Community
             </Link>
           </div>
 
@@ -196,7 +196,7 @@ export default function Footer({ onOpenBooking }: FooterProps) {
             <div className="flex flex-col gap-3 font-semibold text-sm">
               {[
                 { name: 'Download Checklist', to: '/#checklist' },
-                { name: 'Free Community', to: '/#free-community' },
+                { name: 'Community', to: '/community' },
                 { name: 'Growth FAQs', to: '/#resources' }
               ].map((item) => (
                 <Link
