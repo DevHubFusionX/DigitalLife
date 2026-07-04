@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play, User } from 'lucide-react';
 import { useResources } from '../hooks/useResources';
 import { getYouTubeEmbedUrl, extractYouTubeId } from '../lib/youtube';
 import { openWhatsApp } from '../lib/whatsapp';
@@ -14,6 +14,7 @@ export default function ResourceDetailPage() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -23,7 +24,7 @@ export default function ResourceDetailPage() {
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !name) return;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -242,6 +243,22 @@ export default function ResourceDetailPage() {
                   /* ── FREE RESOURCE: Email Lead-Capture Gate ── */
                   !formSubmitted ? (
                     <form onSubmit={handleUnlock} className="space-y-4">
+                      <div>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
+                          Full Name
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Your Name"
+                            required
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
+                          />
+                          <User className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                        </div>
+                      </div>
                       <div>
                         <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
                           Corporate Email

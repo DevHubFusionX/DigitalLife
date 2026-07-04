@@ -5,12 +5,31 @@ import { cn } from "../lib/utils";
 export interface AvatarItem {
   id: string;
   name: string;
-  image: string;
+  image?: string;
 }
 
 export interface SharedTooltipAvatarsProps extends React.HTMLAttributes<HTMLDivElement> {
   items: AvatarItem[];
 }
+
+const getInitials = (name: string) => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
+const getAvatarGradient = (idx: number) => {
+  const gradients = [
+    'from-rose-500 to-orange-500 text-white',
+    'from-teal-500 to-emerald-600 text-white',
+    'from-blue-500 to-indigo-600 text-white',
+    'from-purple-500 to-pink-600 text-white',
+    'from-amber-500 to-red-600 text-white',
+  ];
+  return gradients[idx % gradients.length];
+};
 
 export function SharedTooltipAvatars({ 
   items, 
@@ -97,11 +116,19 @@ export function SharedTooltipAvatars({
             tabIndex={0}
             role="listitem"
           >
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-12 h-12 rounded-full object-cover border-[3px] border-[#0c1411] shadow-sm hover:shadow-xl transition-all duration-300"
-            />
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-12 h-12 rounded-full object-cover border-[3px] border-[#0c1411] shadow-sm hover:shadow-xl transition-all duration-300"
+              />
+            ) : (
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-[11px] tracking-wider border-[3px] border-[#0c1411] shadow-sm hover:shadow-xl transition-all duration-300 bg-gradient-to-br ${getAvatarGradient(index)}`}
+              >
+                {getInitials(item.name)}
+              </div>
+            )}
           </div>
         ))}
       </div>

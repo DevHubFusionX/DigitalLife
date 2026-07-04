@@ -15,10 +15,10 @@ export default function Features() {
   const cardRectRef = useRef<DOMRect | null>(null);
 
   const avatarItems = [
-    { id: '1', name: 'Sarah Connor', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80' },
-    { id: '2', name: 'John Doe', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80' },
-    { id: '3', name: 'Jane Smith', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80' },
-    { id: '4', name: 'Alex Johnson', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80' }
+    { id: '1', name: 'Chinelo Okafor' },
+    { id: '2', name: 'Babajide Alao' },
+    { id: '3', name: 'Amina Bello' },
+    { id: '4', name: 'Emeka Nwachukwu' }
   ];
 
   const handleMouseEnter = () => {

@@ -6,46 +6,51 @@ interface Testimonial {
   quote: string;
   author: string;
   role: string;
-  avatar: string;
+  initials: string;
 }
+
+const getAvatarGradient = (idx: number) => {
+  const gradients = [
+    'from-rose-500 to-orange-500 text-white',
+    'from-teal-500 to-emerald-600 text-white',
+    'from-blue-500 to-indigo-600 text-white',
+    'from-purple-500 to-pink-600 text-white',
+    'from-amber-500 to-red-600 text-white',
+  ];
+  return gradients[idx % gradients.length];
+};
 
 export default function Testimonials() {
   const testimonials: Testimonial[] = [
     {
       quote: '“Digitalife Ehub is a game-changer for MSMEs. Their hands-on business development support helped us build a clean operational structure and gain complete clarity on our growth roadmap in just 8 weeks.”',
-      author: 'Marc Manara',
-      role: 'Founding Partner',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80'
+      author: 'Every Woman’s Beauty Gallery',
+      role: 'Beauty & Retail Brand',
+      initials: 'EW'
     },
     {
       quote: '“The structure and systems they designed for us eliminated our operational chaos completely. Highly recommend!”',
-      author: 'Logan Kilpatrick',
-      role: 'CEO, ScaleUp',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80'
+      author: 'Jewels Heart Foundation',
+      role: 'Non-Profit Organization',
+      initials: 'JH'
     },
     {
       quote: '“I am thoroughly impressed by the transformation in our brand visibility since working with them. They helped us transition from an informal hustle into a visible, structured enterprise.”',
-      author: 'Yazen Altimimi',
-      role: 'Founder, Zain Retail',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&h=120&q=80'
+      author: 'Executive Fashion MCS',
+      role: 'Fashion & Retail Company',
+      initials: 'EF'
     },
     {
       quote: '“Their social media management and content strategy are not just about noise—they positioned our brand to communicate authority and convert visibility into real revenue.”',
-      author: 'Martin Terskin',
-      role: 'Director, OfferMarket',
-      avatar: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=120&h=120&q=80'
+      author: 'Deborah Amarachi',
+      role: 'Founder & Entrepreneur',
+      initials: 'DA'
     },
     {
       quote: '“Their MSME formalization support and SOP development saved us countless hours of confusion. We now have clear direction and organized operations.”',
-      author: 'Theresa Webb',
-      role: 'Operations Manager',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80'
-    },
-    {
-      quote: '“Digitalife Ehub doesn’t just advise—they build with you. Their practical training equipped our team with frameworks we could implement immediately.”',
-      author: 'Dianne Russell',
-      role: 'Co-founder, GreenGrow',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80'
+      author: 'Psalm Apparel',
+      role: 'Apparel & Design House',
+      initials: 'PA'
     }
   ];
 
@@ -117,13 +122,13 @@ export default function Testimonials() {
                       : 'bg-transparent border-transparent hover:bg-white/50 hover:border-black/5'
                   }`}
                 >
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.author}
-                    className={`w-12 h-12 rounded-xl object-cover border transition-transform duration-300 ${
-                      isActive ? 'border-[#3e4095] scale-105' : 'border-black/10'
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-sm tracking-wider bg-linear-to-br ${getAvatarGradient(idx)} border border-white/10 transition-transform duration-300 shrink-0 ${
+                      isActive ? 'scale-105 ring-2 ring-[#3e4095] ring-offset-2' : ''
                     }`}
-                  />
+                  >
+                    {testimonial.initials}
+                  </div>
                   <div className="flex flex-col min-w-0">
                     <span className={`text-sm font-bold truncate transition-colors duration-300 ${
                       isActive ? 'text-[#3e4095]' : 'text-slate-800'
@@ -159,11 +164,11 @@ export default function Testimonials() {
                     </p>
                     
                     <div className="flex items-center gap-4 mt-2">
-                      <img
-                        src={testimonials[activeIndex].avatar}
-                        alt={testimonials[activeIndex].author}
-                        className="w-10 h-10 rounded-full object-cover border border-black/10 lg:hidden"
-                      />
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-xs tracking-wider bg-linear-to-br ${getAvatarGradient(activeIndex)} border border-white/10 lg:hidden shrink-0`}
+                      >
+                        {testimonials[activeIndex].initials}
+                      </div>
                       <div>
                         <h4 className="text-sm font-extrabold text-slate-950 uppercase tracking-wider">
                           {testimonials[activeIndex].author}
