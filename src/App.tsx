@@ -22,6 +22,7 @@ import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminResourcesPage from './pages/admin/AdminResourcesPage';
 import AdminVideoResourcesPage from './pages/admin/AdminVideoResourcesPage';
+import AdminPlaybooksPage from './pages/admin/AdminPlaybooksPage';
 import AdminBlogPage from './pages/admin/AdminBlogPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
@@ -58,6 +59,7 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
               <Route path="/admin/resources" element={<AdminResourcesPage />} />
               <Route path="/admin/videos" element={<AdminVideoResourcesPage />} />
+              <Route path="/admin/playbooks" element={<AdminPlaybooksPage />} />
               <Route path="/admin/blog" element={<AdminBlogPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Route>

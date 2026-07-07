@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Youtube, Settings, LogOut, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
+import { LayoutDashboard, FileText, Youtube, Settings, LogOut, ChevronLeft, ChevronRight, BookOpen, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/resources', icon: FileText, label: 'Resources' },
   { to: '/admin/videos', icon: Youtube, label: 'Video Resources' },
+  { to: '/admin/playbooks', icon: Users, label: 'Expert Playbooks' },
   { to: '/admin/blog', icon: BookOpen, label: 'Blog Posts' },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ];

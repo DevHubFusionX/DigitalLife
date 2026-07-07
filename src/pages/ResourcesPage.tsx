@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Search, ChevronDown, ArrowRight, BookOpen, Download, Play, Youtube } from 'lucide-react';
 import AuroraHero from '../components/ui/aurora-hero';
 import { useResources } from '../hooks/useResources';
+import { usePlaybooks } from '../hooks/usePlaybooks';
 import { useVideos } from '../hooks/useVideos';
 import { useMetadata } from '../hooks/useMetadata';
 
 export default function ResourcesPage() {
   const { resources } = useResources();
+  const { playbooks } = usePlaybooks();
   const { videos } = useVideos();
   const { categories, formats } = useMetadata();
 
@@ -200,30 +202,35 @@ export default function ResourcesPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { initials: 'BS', name: 'Brandon Smithwick', role: 'Growth Strategy', desc: 'Experienced strategist focusing on value propositions and packaging models. Brandon specializes in helping early-stage service teams build authority and package capabilities to command high-ticket pricing.', link: '/resources/1', label: 'Value Proposition Roadmap' },
-              { initials: 'GJ', name: 'Gabrielle Judge', role: 'Productivity & SOPs', desc: 'Workflow specialist and TEDx speaker focused on helping entrepreneurs remove bottleneck dependencies. Gabrielle builds minimal tools and operational protocols to streamline onboarding and delivery pipelines.', link: '/resources/6', label: 'SOP Delegation Playbook' },
-              { initials: 'VC', name: 'Valerie Chapman', role: 'Marketing & Authority', desc: 'Founder & consultant specialized in bridging the authority gap. Valerie focuses on content architecture models, helping B2B teams and service agencies build audience channels on zero advertising spend.', link: '/resources/4', label: 'Organic Authority Guide' },
-            ].map((p) => (
-              <div key={p.name} className="bg-[#fffdf5] border border-black/5 rounded-3xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+            {playbooks.map((p) => (
+              <div key={p.id} className="bg-[#fffdf5] border border-black/5 rounded-3xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300">
                 <div>
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 border border-slate-900/5">
-                      {p.initials}
-                    </div>
+                    {p.avatarUrl ? (
+                      <img src={p.avatarUrl} alt={p.name} className="w-12 h-12 rounded-full object-cover border border-slate-900/5" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 border border-slate-900/5">
+                        {p.initials}
+                      </div>
+                    )}
                     <div>
                       <h4 className="text-sm font-bold text-slate-950">{p.name}</h4>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{p.role}</span>
                     </div>
                   </div>
-                  <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6">{p.desc}</p>
+                  <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6">{p.description}</p>
                 </div>
-                <Link to={p.link} className="flex items-center justify-between text-xs font-bold text-slate-950 hover:text-[#3e4095] border-t border-black/5 pt-4 mt-2 transition-colors">
-                  <span>{p.label}</span>
+                <Link to={p.linkedResourceId ? `/resources/${p.linkedResourceId}` : '/resources'} className="flex items-center justify-between text-xs font-bold text-slate-950 hover:text-[#3e4095] border-t border-black/5 pt-4 mt-2 transition-colors">
+                  <span>{p.linkedResourceLabel}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             ))}
+            {playbooks.length === 0 && (
+              <div className="col-span-full py-12 text-center text-slate-400 font-bold text-sm">
+                No expert playbooks available yet.
+              </div>
+            )}
           </div>
         </div>
       </section>

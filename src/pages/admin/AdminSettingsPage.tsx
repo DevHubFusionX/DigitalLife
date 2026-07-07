@@ -6,6 +6,7 @@ import { useResources } from '../../hooks/useResources';
 import { useVideos } from '../../hooks/useVideos';
 import { seedDefaultResources, wipeAllResources } from '../../lib/firestore/resources';
 import { seedDefaultPosts } from '../../lib/firestore/blog';
+import { seedDefaultPlaybooks, wipeAllPlaybooks } from '../../lib/firestore/playbooks';
 import { addCategory, deleteCategory, addFormat, deleteFormat } from '../../lib/firestore/metadata';
 import { useMetadata } from '../../hooks/useMetadata';
 import { auth } from '../../lib/firebase';
@@ -30,6 +31,10 @@ export default function AdminSettingsPage() {
   // Seed blog
   const [blogSeedLoading, setBlogSeedLoading] = useState(false);
   const [blogSeedSuccess, setBlogSeedSuccess] = useState(false);
+
+  // Seed playbooks
+  const [playbookSeedLoading, setPlaybookSeedLoading] = useState(false);
+  const [playbookSeedSuccess, setPlaybookSeedSuccess] = useState(false);
 
   // Metadata management
   const [newCategory, setNewCategory] = useState('');
@@ -77,6 +82,18 @@ export default function AdminSettingsPage() {
       setBlogSeedSuccess(true);
     } finally {
       setBlogSeedLoading(false);
+    }
+  };
+
+  const handleSeedPlaybooks = async () => {
+    setPlaybookSeedLoading(true);
+    setPlaybookSeedSuccess(false);
+    try {
+      await wipeAllPlaybooks();
+      await seedDefaultPlaybooks();
+      setPlaybookSeedSuccess(true);
+    } finally {
+      setPlaybookSeedLoading(false);
     }
   };
 
@@ -229,6 +246,35 @@ export default function AdminSettingsPage() {
               <RefreshCw className="w-3.5 h-3.5" />
             )}
             Seed Blog
+          </button>
+        </div>
+
+        <div className="border-t border-black/5" />
+
+        {/* Seed Expert Playbooks */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold text-slate-900">Reset &amp; Seed Expert Playbooks</p>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+              Wipes all existing playbooks and seeds the 3 default expert profiles.
+            </p>
+            {playbookSeedSuccess && (
+              <p className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 mt-1">
+                <Check className="w-3 h-3" /> Default playbooks seeded.
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handleSeedPlaybooks}
+            disabled={playbookSeedLoading}
+            className="flex items-center gap-1.5 bg-[#3e4095]/10 hover:bg-[#3e4095]/20 text-[#3e4095] font-bold text-xs px-4 py-2.5 rounded-xl transition-colors shrink-0 disabled:opacity-60"
+          >
+            {playbookSeedLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+            Seed Playbooks
           </button>
         </div>
       </div>
