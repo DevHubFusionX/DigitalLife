@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Check, MessageCircle } from 'lucide-react';
-import { getWhatsAppUrl } from '../lib/whatsapp';
+import { X, Send, Check, MessageCircle, Phone } from 'lucide-react';
+import { getWhatsAppUrl, CONTACT_PHONE } from '../lib/whatsapp';
 
 export default function WhatsappSticky() {
   const [isOpen, setIsOpen] = useState(false);
@@ -120,15 +120,23 @@ export default function WhatsappSticky() {
             </div>
 
             {/* Quick Action footer link */}
-            <div className="p-4 bg-white border-t border-black/5">
+            <div className="p-4 bg-white border-t border-black/5 space-y-2">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 bg-[#25d366] hover:bg-[#20ba5a] text-white font-extrabold text-sm rounded-2xl transition-colors shadow-sm cursor-pointer"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-[#25d366] hover:bg-[#20ba5a] text-white font-extrabold text-sm rounded-2xl transition-colors shadow-sm cursor-pointer no-underline"
               >
                 <Send className="w-4 h-4 fill-white" /> Start Whatsapp Chat
               </a>
+
+              <a
+                href={`tel:${CONTACT_PHONE}`}
+                className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm rounded-2xl transition-colors shadow-sm cursor-pointer no-underline"
+              >
+                <Phone className="w-4 h-4 text-white" /> Call Support: {CONTACT_PHONE}
+              </a>
+              
               <p className="text-center text-[10px] text-[#717b72] font-bold uppercase tracking-wider mt-2.5">
                 Response Time: Under 10 minutes
               </p>

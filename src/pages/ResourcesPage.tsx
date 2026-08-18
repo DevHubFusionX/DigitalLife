@@ -16,7 +16,7 @@ export default function ResourcesPage() {
   const categoryNames = categories.map((c) => c.name);
   const formatNames = formats.map((f) => f.name);
 
-  const [selectedFeaturedTab, setSelectedFeaturedTab] = useState('');
+  const [selectedFeaturedTab, setSelectedFeaturedTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All Topics');
   const [selectedFormat, setSelectedFormat] = useState('All Formats');
@@ -58,12 +58,7 @@ export default function ResourcesPage() {
     return matchesSearch && matchesTopic && matchesFormat;
   });
 
-  // Auto-select first category tab when categories load
-  useEffect(() => {
-    if (!selectedFeaturedTab && categoryNames.length > 0) {
-      setSelectedFeaturedTab(categoryNames[0]);
-    }
-  }, [categoryNames, selectedFeaturedTab]);
+  // Auto-select first category tab when categories load was removed since default tab is 'All'
 
   return (
     <div className="bg-[#fffdf5] text-slate-900 pt-20">
@@ -117,6 +112,17 @@ export default function ResourcesPage() {
         {/* Categories Tab Bar */}
         <div className="flex justify-center border-b border-black/5 mb-12 overflow-x-auto pb-px">
           <div className="flex gap-8 whitespace-nowrap">
+            <button
+              onClick={() => setSelectedFeaturedTab('All')}
+              className={`py-3.5 text-xs font-black uppercase tracking-wider relative transition-colors duration-250 cursor-pointer ${
+                selectedFeaturedTab === 'All' ? 'text-slate-950' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              All
+              {selectedFeaturedTab === 'All' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-950" />
+              )}
+            </button>
             {categoryNames.map((tab) => (
               <button
                 key={tab}
@@ -137,7 +143,7 @@ export default function ResourcesPage() {
         {/* Featured Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {resources
-            .filter((item) => (item.category || '').toLowerCase() === selectedFeaturedTab.toLowerCase() && (item.featured === true || String(item.featured) === 'true'))
+            .filter((item) => (selectedFeaturedTab === 'All' || (item.category || '').toLowerCase() === selectedFeaturedTab.toLowerCase()) && (item.featured === true || String(item.featured) === 'true'))
             .map((item) => (
               <Link
                 key={item.id}
@@ -184,7 +190,7 @@ export default function ResourcesPage() {
                 </div>
               </Link>
             ))}
-          {resources.filter((i) => (i.category || '').toLowerCase() === selectedFeaturedTab.toLowerCase() && (i.featured === true || String(i.featured) === 'true')).length === 0 && (
+          {resources.filter((i) => (selectedFeaturedTab === 'All' || (i.category || '').toLowerCase() === selectedFeaturedTab.toLowerCase()) && (i.featured === true || String(i.featured) === 'true')).length === 0 && (
             <div className="col-span-full py-12 text-center text-slate-400 font-bold text-sm">
               No featured resources in this category yet.
             </div>

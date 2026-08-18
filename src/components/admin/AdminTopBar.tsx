@@ -5,6 +5,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/dashboard': 'Dashboard',
   '/admin/resources': 'Resources',
   '/admin/videos': 'Video Resources',
+  '/admin/playbooks': 'Expert Playbooks',
+  '/admin/blog': 'Blog Posts',
+  '/admin/leads': 'Captured Leads',
   '/admin/settings': 'Settings',
 };
 

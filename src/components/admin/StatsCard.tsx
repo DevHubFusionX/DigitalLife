@@ -4,7 +4,7 @@ interface StatsCardProps {
   icon: LucideIcon;
   label: string;
   value: number | string;
-  color: 'blue' | 'gold' | 'green' | 'purple';
+  color: 'blue' | 'gold' | 'green' | 'purple' | 'rose';
 }
 
 const COLOR_MAP = {
@@ -27,6 +27,11 @@ const COLOR_MAP = {
     bg: 'bg-violet-500/10',
     icon: 'text-violet-600',
     border: 'border-violet-500/10',
+  },
+  rose: {
+    bg: 'bg-rose-500/10',
+    icon: 'text-rose-600',
+    border: 'border-rose-500/10',
   },
 };
 

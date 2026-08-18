@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play, User } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play, User, CreditCard } from 'lucide-react';
 import { useResources } from '../hooks/useResources';
 import { getYouTubeEmbedUrl, extractYouTubeId } from '../lib/youtube';
 import { openWhatsApp } from '../lib/whatsapp';
-
-
+import { addLead } from '../lib/firestore/leads';
+import { payWithPaystack } from '../lib/paystack';
 
 export default function ResourceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,11 +22,37 @@ export default function ResourceDetailPage() {
 
   const resource = resources.find((r) => r.id === id) ?? resources[0];
 
-  const handleUnlock = (e: React.FormEvent) => {
+  const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !name) return;
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await addLead({
+        name: name.trim(),
+        email: email.trim(),
+        resourceId: resource.id,
+        resourceTitle: resource.title,
+      });
+
+      // Try sending the email via serverless function
+      try {
+        await fetch('/api/send-resource', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim(),
+            resourceId: resource.id,
+            resourceTitle: resource.title,
+            downloadUrl: resource.downloadUrl,
+          }),
+        });
+      } catch (err) {
+        console.warn('Failed to send email via API:', err);
+      }
+    } catch (err) {
+      console.warn('Failed to save lead to Firestore:', err);
+    } finally {
       setIsLoading(false);
       setFormSubmitted(true);
       
@@ -39,7 +65,84 @@ export default function ResourceDetailPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    }, 1800);
+    }
+  };
+
+  const handlePaidUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !name) return;
+    setIsLoading(true);
+
+    try {
+      const usdPrice = resource.price || 0;
+      const conversionRate = 1600;
+      const amountInNGN = Math.round(usdPrice * conversionRate);
+      const amountInKobo = amountInNGN * 100;
+      const ref = `ref_${Math.floor(Math.random() * 1000000000) + 1}`;
+
+      const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_b52968db75e336b940e70ba6297395a12eb1e428';
+
+      await payWithPaystack({
+        key: paystackKey,
+        email: email.trim(),
+        amount: amountInKobo,
+        currency: 'NGN',
+        ref,
+        onSuccess: async (response) => {
+          try {
+            // Save lead to Firestore with payment details
+            await addLead({
+              name: name.trim(),
+              email: email.trim(),
+              resourceId: resource.id,
+              resourceTitle: resource.title,
+              isPaid: true,
+              amountPaid: usdPrice,
+              paymentRef: response.reference,
+            });
+          } catch (err) {
+            console.warn('Failed to save payment lead to Firestore:', err);
+          }
+
+          // Trigger email send via Vercel serverless function
+          try {
+            await fetch('/api/send-resource', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: name.trim(),
+                email: email.trim(),
+                resourceId: resource.id,
+                resourceTitle: resource.title,
+                downloadUrl: resource.downloadUrl,
+              }),
+            });
+          } catch (err) {
+            console.warn('Failed to send email via API:', err);
+          }
+
+          setFormSubmitted(true);
+          setIsLoading(false);
+
+          // Trigger automatic browser download
+          const link = document.createElement('a');
+          link.href = resource.downloadUrl || '/logo.svg';
+          link.download = `${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
+        onCancel: () => {
+          setIsLoading(false);
+          alert('Payment was cancelled.');
+        },
+      });
+    } catch (err: any) {
+      setIsLoading(false);
+      alert(err.message || 'Payment initiation failed.');
+    }
   };
 
   if (loading) {
@@ -239,87 +342,100 @@ export default function ResourceDetailPage() {
 
               {/* Form/WhatsApp Action Area */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mt-4">
-                {resource.isFree ? (
-                  /* ── FREE RESOURCE: Email Lead-Capture Gate ── */
-                  !formSubmitted ? (
-                    <form onSubmit={handleUnlock} className="space-y-4">
-                      <div>
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
-                          Full Name
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="Your Name"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
-                          />
-                          <User className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                        </div>
+                {!formSubmitted ? (
+                  <form onSubmit={resource.isFree ? handleUnlock : handlePaidUnlock} className="space-y-4">
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Your Name"
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
+                        />
+                        <User className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
                       </div>
-                      <div>
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
-                          Corporate Email
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="email"
-                            placeholder="you@company.com"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
-                          />
-                          <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                        </div>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shadow-md"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" /> Unlocking...
-                          </>
-                        ) : (
-                          <>
-                            Download Resource <Download className="w-4 h-4" />
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="space-y-4 text-center py-2">
-                      <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <Check className="w-5 h-5 text-emerald-500" />
-                      </div>
-                      <p className="text-xs font-bold text-white">Resource Unlocked Successfully!</p>
-                      <a
-                        href={resource.downloadUrl || '/logo.svg'}
-                        download={`${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md no-underline"
-                      >
-                        <FileText className="w-4 h-4" /> Direct Download Link
-                      </a>
                     </div>
-                  )
-                ) : (
-                  /* ── PAID RESOURCE: Purchase via WhatsApp ── */
-                  <div className="space-y-4">
-                    <p className="text-xs text-slate-300 font-semibold leading-relaxed">
-                      Click the button below to message our team directly on WhatsApp to purchase and get secure access.
-                    </p>
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
+                        Corporate Email
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          placeholder="you@company.com"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
+                        />
+                        <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                      </div>
+                    </div>
+                    
                     <button
-                      onClick={() => openWhatsApp(`Hi Digitalife Ehub, I would like to purchase the premium resource "${resource.title}" (${resource.format}).`)}
+                      type="submit"
+                      disabled={isLoading}
                       className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shadow-md"
                     >
-                      Purchase via WhatsApp <ArrowRight className="w-4 h-4" />
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                        </>
+                      ) : resource.isFree ? (
+                        <>
+                          Download Resource <Download className="w-4 h-4" />
+                        </>
+                      ) : (
+                        <>
+                          Pay &amp; Download (₦{Math.round((resource.price || 0) * 1600).toLocaleString()}) <CreditCard className="w-4 h-4" />
+                        </>
+                      )}
                     </button>
+
+                    {!resource.isFree && (
+                      <div className="pt-2 text-center">
+                        <span className="text-[9px] text-slate-400 font-semibold block">
+                          Card payments secured by Paystack (~₦1,600/$).
+                        </span>
+                        <div className="relative flex items-center justify-center my-3">
+                          <div className="absolute inset-x-0 h-px bg-white/10" />
+                          <span className="relative px-3 bg-[#0f172a] text-[9px] text-slate-400 font-bold uppercase tracking-wider">or</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openWhatsApp(`Hi Digitalife Ehub, I would like to purchase the premium resource "${resource.title}" (${resource.format}) offline.`)}
+                          className="w-full bg-white/10 hover:bg-white/15 text-white font-extrabold py-3 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border border-white/10"
+                        >
+                          Purchase via WhatsApp <ArrowRight className="w-4.5 h-4.5" />
+                        </button>
+                      </div>
+                    )}
+                  </form>
+                ) : (
+                  <div className="space-y-4 text-center py-2">
+                    <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+                      <Check className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <p className="text-xs font-bold text-white">
+                      {resource.isFree ? 'Resource Unlocked Successfully!' : 'Payment Completed Successfully!'}
+                    </p>
+                    <p className="text-[11px] text-slate-300 font-semibold">
+                      We have sent a copy of the resource to <strong>{email}</strong>.
+                    </p>
+                    <a
+                      href={resource.downloadUrl || '/logo.svg'}
+                      download={`${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md no-underline"
+                    >
+                      <FileText className="w-4 h-4" /> Direct Download Link
+                    </a>
                   </div>
                 )}
               </div>

@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Blog posts — public read, admin write
+    match /posts/{postId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Resources — public read, admin write
+    match /resources/{resourceId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Video resources — public read, admin write
+    match /videos/{videoId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Categories — public read, admin write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Formats — public read, admin write
+    match /formats/{formatId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /playbooks/{playbookId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Leads — public write, admin read/write
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+  }
+}

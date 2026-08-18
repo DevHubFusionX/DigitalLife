@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, BookOpen } from 'lucide-react';
 import BlogForm from '../../components/admin/BlogForm';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
@@ -13,6 +14,15 @@ export default function AdminBlogPage() {
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'new') {
+      setEditTarget(null);
+      setFormOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const filtered = posts.filter(
     (p) =>

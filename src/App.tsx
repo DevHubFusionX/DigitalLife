@@ -24,6 +24,7 @@ import AdminResourcesPage from './pages/admin/AdminResourcesPage';
 import AdminVideoResourcesPage from './pages/admin/AdminVideoResourcesPage';
 import AdminPlaybooksPage from './pages/admin/AdminPlaybooksPage';
 import AdminBlogPage from './pages/admin/AdminBlogPage';
+import AdminLeadsPage from './pages/admin/AdminLeadsPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 // Helper component to handle scrolling to element hashes on navigation
@@ -61,6 +62,7 @@ function App() {
               <Route path="/admin/videos" element={<AdminVideoResourcesPage />} />
               <Route path="/admin/playbooks" element={<AdminPlaybooksPage />} />
               <Route path="/admin/blog" element={<AdminBlogPage />} />
+              <Route path="/admin/leads" element={<AdminLeadsPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>

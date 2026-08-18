@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
-import { FileText, Youtube, Layers, Plus, BookOpen } from 'lucide-react';
+import { FileText, Youtube, Layers, Plus, BookOpen, Mail } from 'lucide-react';
 import StatsCard from '../../components/admin/StatsCard';
 import { useResources } from '../../hooks/useResources';
 import { useVideos } from '../../hooks/useVideos';
 import { useBlog } from '../../hooks/useBlog';
+import { useLeads } from '../../hooks/useLeads';
 
 export default function AdminDashboardPage() {
   const { resources } = useResources();
   const { videos } = useVideos();
   const { posts } = useBlog();
+  const { leads } = useLeads();
 
   // Unique categories
   const categories = new Set(resources.map((r) => r.category)).size;
@@ -28,15 +30,16 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatsCard icon={FileText} label="Total Resources" value={resources.length} color="blue" />
         <StatsCard icon={Youtube} label="Video Resources" value={videos.length} color="purple" />
         <StatsCard icon={BookOpen} label="Blog Posts" value={posts.length} color="green" />
+        <StatsCard icon={Mail} label="Captured Leads" value={leads.length} color="rose" />
         <StatsCard icon={Layers} label="Categories" value={categories} color="gold" />
       </div>
 
       {/* Quick Actions */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Link
           to="/admin/resources"
           className="flex items-center gap-2 bg-[#3e4095] hover:bg-[#2e3075] text-white font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
@@ -50,10 +53,16 @@ export default function AdminDashboardPage() {
           <Plus className="w-4 h-4" /> Add Video
         </Link>
         <Link
-          to="/admin/blog"
+          to="/admin/blog?action=new"
           className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-black/10 text-slate-800 font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
         >
-          <BookOpen className="w-4 h-4" /> Blog Posts
+          <Plus className="w-4 h-4" /> Write Blog Post
+        </Link>
+        <Link
+          to="/admin/leads"
+          className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-black/10 text-slate-800 font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
+        >
+          <Mail className="w-4 h-4" /> View Leads
         </Link>
       </div>
 
