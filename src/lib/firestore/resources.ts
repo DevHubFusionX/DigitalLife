@@ -8,7 +8,6 @@ import {
   query,
   orderBy,
   setDoc,
-  Timestamp,
   type Unsubscribe,
   writeBatch,
   getDocs,
@@ -16,15 +15,10 @@ import {
 import { db } from '../firebase';
 import type { Resource } from '../../types/resource';
 import { DEFAULT_RESOURCES } from '../../data/defaultResources';
+import { seedDefaultMetadata } from './metadata';
+import { toIsoTimestamp } from './common';
 
 const COLLECTION = 'resources';
-
-/** Normalises a Firestore Timestamp or string to an ISO string. */
-function toIso(value: unknown): string {
-  if (value instanceof Timestamp) return value.toDate().toISOString();
-  if (typeof value === 'string') return value;
-  return new Date().toISOString();
-}
 
 /**
  * Subscribes to the resources Firestore collection (real-time).
@@ -50,12 +44,12 @@ export function subscribeToResources(
           coverBg: data.coverBg || data.coverGradient || 'from-[#0f172a] to-[#1e293b]',
           coverTitle: data.coverTitle || data.title || '',
           coverImage: data.coverImage || data.coverUrl || null,
-          isFree: data.isFree !== undefined ? data.isFree : (data.contentType === 'Free' ? true : false),
+          isFree: data.isFree !== undefined ? data.isFree : (data.contentType === 'Free'),
           price: data.price !== undefined ? data.price : (data.contentType === 'Free' ? 0 : (data.price || 0)),
           featured: data.featured === true || String(data.featured) === 'true',
           downloadUrl: data.downloadUrl || null,
-          createdAt: toIso(data.createdAt),
-          updatedAt: toIso(data.updatedAt),
+          createdAt: toIsoTimestamp(data.createdAt),
+          updatedAt: toIsoTimestamp(data.updatedAt),
         } as Resource;
       });
       onData(resources);
@@ -91,10 +85,8 @@ export async function deleteResource(id: string) {
   return deleteDoc(doc(db, COLLECTION, id));
 }
 
-import { seedDefaultMetadata } from './metadata';
-
 /**
- * Seeds Firestore with the 8 default resources using their numeric string IDs.
+ * Seeds Firestore with the default resources using their preset IDs.
  * Safe to call multiple times — uses setDoc with merge:false (overwrites).
  * Triggered from Admin > Settings.
  */

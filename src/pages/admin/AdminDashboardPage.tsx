@@ -1,113 +1,213 @@
-import { Link } from 'react-router-dom';
-import { FileText, Youtube, Layers, Plus, BookOpen, Mail } from 'lucide-react';
-import StatsCard from '../../components/admin/StatsCard';
+import { useState } from 'react';
 import { useResources } from '../../hooks/useResources';
-import { useVideos } from '../../hooks/useVideos';
 import { useBlog } from '../../hooks/useBlog';
+import { useVideos } from '../../hooks/useVideos';
+import { usePlaybooks } from '../../hooks/usePlaybooks';
 import { useLeads } from '../../hooks/useLeads';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useToast } from '../../hooks/useToast';
+
+import DashboardHeader from '../../components/admin/dashboard/DashboardHeader';
+import TotalBalanceCard from '../../components/admin/dashboard/TotalBalanceCard';
+import MilestoneProgressCard from '../../components/admin/dashboard/MilestoneProgressCard';
+import GatewayStatusCards from '../../components/admin/dashboard/GatewayStatusCards';
+import KpiStatsGrid from '../../components/admin/dashboard/KpiStatsGrid';
+import EngagementChartCard from '../../components/admin/dashboard/EngagementChartCard';
+import RecentActivitiesTable from '../../components/admin/dashboard/RecentActivitiesTable';
 
 export default function AdminDashboardPage() {
   const { resources } = useResources();
-  const { videos } = useVideos();
   const { posts } = useBlog();
-  const { leads } = useLeads();
+  const { videos } = useVideos();
+  const { playbooks } = usePlaybooks();
+  const { leads, loading: leadsLoading } = useLeads();
+  const { user } = useAdminAuth();
+  const { success } = useToast();
 
-  // Unique categories
-  const categories = new Set(resources.map((r) => r.category)).size;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<'all' | 'paid' | 'free'>('all');
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Last 5 items combined (resources + videos) sorted by createdAt
-  const recentResources = [...resources]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+  const adminFirstName = user?.email ? user.email.split('@')[0].split('.')[0] : 'Admin';
+
+  // ─── ACTUAL REAL DATA COMPUTATIONS ───
+  const paidLeads = leads.filter((l) => l.isPaid);
+  const freeLeads = leads.filter((l) => !l.isPaid);
+
+  // Exact real money totals
+  const totalRevenueUSD = paidLeads.reduce((acc, l) => acc + (Number(l.amountPaid) || 0), 0);
+  const totalRevenueNGN = Math.round(totalRevenueUSD * 1600);
+
+  // Real resources catalog breakdown
+  const paidResourcesCount = resources.filter((r) => Number(r.price) > 0).length;
+  const freeResourcesCount = resources.filter((r) => !r.price || Number(r.price) === 0).length;
+
+  // Monthly milestone target
+  const monthlyMilestoneTarget = 100;
+
+  // Filtering activities based on search and status
+  const filteredActivities = leads
+    .filter((lead) => {
+      const matchesSearch =
+        lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lead.resourceTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (lead.paymentRef && lead.paymentRef.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesStatus =
+        selectedStatusFilter === 'all'
+          ? true
+          : selectedStatusFilter === 'paid'
+          ? lead.isPaid
+          : !lead.isPaid;
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const handleCopyEmail = (email: string, id: string) => {
+    navigator.clipboard.writeText(email);
+    setCopiedId(id);
+    success(`Copied "${email}" to clipboard.`);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const toggleSelectLead = (id: string) => {
+    setSelectedLeadIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedLeadIds.length === filteredActivities.length) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(filteredActivities.map((l) => l.id));
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (leads.length === 0) {
+      success('No leads to export yet.');
+      return;
+    }
+    const headers = ['Order ID', 'Name', 'Email', 'Resource Title', 'Type', 'Amount ($)', 'Ref', 'Date'];
+    const rows = leads.map((lead, idx) => [
+      `DIG_${String(idx + 1).padStart(6, '0')}`,
+      `"${lead.name.replace(/"/g, '""')}"`,
+      `"${lead.email.replace(/"/g, '""')}"`,
+      `"${lead.resourceTitle.replace(/"/g, '""')}"`,
+      lead.isPaid ? 'PAID' : 'FREE',
+      lead.isPaid ? `$${(lead.amountPaid || 0).toFixed(2)}` : '$0.00',
+      lead.paymentRef || 'N/A',
+      new Date(lead.createdAt).toLocaleString('en-GB'),
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `digitalife-actual-leads-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    success(`Exported ${leads.length} customer leads as CSV.`);
+  };
+
+  // Dynamic monthly activity aggregation
+  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+  const chartData = monthLabels.map((m, idx) => {
+    const matchingLeads = leads.filter((l) => {
+      const d = new Date(l.createdAt);
+      return d.getMonth() === idx;
+    });
+    const paidCount = matchingLeads.filter((l) => l.isPaid).length;
+    const freeCount = matchingLeads.filter((l) => !l.isPaid).length;
+
+    const paidHeight = leads.length > 0 ? `${Math.max(12, Math.min(90, paidCount * 25))}%` : '15%';
+    const freeHeight = leads.length > 0 ? `${Math.max(12, Math.min(80, freeCount * 15))}%` : '20%';
+
+    return {
+      label: m,
+      paidHeight,
+      freeHeight,
+      paidCount,
+      freeCount,
+    };
+  });
 
   return (
-    <div className="space-y-8 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-black text-slate-950 tracking-tight">Welcome back 👋</h1>
-        <p className="text-xs text-slate-400 font-semibold mt-1">
-          Here's a quick overview of your resource library.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1440px] mx-auto pb-12 font-sans select-none">
+      {/* 1. Greeting & Page Header */}
+      <DashboardHeader adminName={adminFirstName} />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatsCard icon={FileText} label="Total Resources" value={resources.length} color="blue" />
-        <StatsCard icon={Youtube} label="Video Resources" value={videos.length} color="purple" />
-        <StatsCard icon={BookOpen} label="Blog Posts" value={posts.length} color="green" />
-        <StatsCard icon={Mail} label="Captured Leads" value={leads.length} color="rose" />
-        <StatsCard icon={Layers} label="Categories" value={categories} color="gold" />
-      </div>
+      {/* 2. Main 2-Column Responsive Workspace */}
+      <div className="flex flex-col xl:flex-row gap-6 items-start">
+        
+        {/* Left Column (~380px on desktop, full width on mobile) */}
+        <div className="w-full xl:w-[380px] shrink-0 space-y-6">
+          <TotalBalanceCard
+            totalRevenueUSD={totalRevenueUSD}
+            totalRevenueNGN={totalRevenueNGN}
+            paidOrdersCount={paidLeads.length}
+            totalLeadsCount={leads.length}
+            onExportCSV={handleExportCSV}
+          />
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-3">
-        <Link
-          to="/admin/resources"
-          className="flex items-center gap-2 bg-[#3e4095] hover:bg-[#2e3075] text-white font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
-        >
-          <Plus className="w-4 h-4" /> Add Resource
-        </Link>
-        <Link
-          to="/admin/videos"
-          className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-black/10 text-slate-800 font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
-        >
-          <Plus className="w-4 h-4" /> Add Video
-        </Link>
-        <Link
-          to="/admin/blog?action=new"
-          className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-black/10 text-slate-800 font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
-        >
-          <Plus className="w-4 h-4" /> Write Blog Post
-        </Link>
-        <Link
-          to="/admin/leads"
-          className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-black/10 text-slate-800 font-bold text-xs px-5 py-3 rounded-xl transition-colors no-underline"
-        >
-          <Mail className="w-4 h-4" /> View Leads
-        </Link>
-      </div>
+          <MilestoneProgressCard
+            currentCount={leads.length}
+            targetCount={monthlyMilestoneTarget}
+          />
 
-      {/* Recent Resources */}
-      <div>
-        <h2 className="text-sm font-black text-slate-950 uppercase tracking-wider mb-4">
-          Recently Added
-        </h2>
-        <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
-          {recentResources.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-xs font-semibold">
-              No resources yet — add one to get started.
+          <GatewayStatusCards
+            paidOrdersCount={paidLeads.length}
+            totalDeliveriesCount={leads.length}
+          />
+        </div>
+
+        {/* Right Workspace: KPIs, Chart, and Recent Activities Table */}
+        <div className="flex-1 space-y-6 min-w-0 w-full">
+          {/* Top Row: 2x2 Grid + Dual-Bar Chart */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-6">
+              <KpiStatsGrid
+                totalRevenueUSD={totalRevenueUSD}
+                paidLeadsCount={paidLeads.length}
+                totalLeadsCount={leads.length}
+                freeLeadsCount={freeLeads.length}
+                totalResourcesCount={resources.length}
+                paidResourcesCount={paidResourcesCount}
+                freeResourcesCount={freeResourcesCount}
+                totalArticlesCount={posts.length}
+                totalPlaybooksCount={playbooks.length + videos.length}
+              />
             </div>
-          ) : (
-            <ul className="divide-y divide-black/5">
-              {recentResources.map((resource) => (
-                <li key={resource.id} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors">
-                  {/* Cover swatch / image */}
-                  {resource.coverImage ? (
-                    <img
-                      src={resource.coverImage}
-                      alt={resource.title}
-                      className="w-9 h-9 rounded-lg object-cover shrink-0"
-                    />
-                  ) : (
-                    <div
-                      className={`w-9 h-9 rounded-lg bg-linear-to-br ${resource.coverBg} shrink-0`}
-                    />
-                  )}
-                  <div className="grow min-w-0">
-                    <p className="text-xs font-bold text-slate-950 truncate">{resource.title}</p>
-                    <p className="text-[10px] text-slate-400 font-semibold">
-                      {resource.category} · {resource.format}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-semibold shrink-0">
-                    {new Date(resource.createdAt).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+
+            <div className="lg:col-span-6">
+              <EngagementChartCard
+                chartData={chartData}
+                paidLeadsCount={paidLeads.length}
+                freeLeadsCount={freeLeads.length}
+                totalLeadsCount={leads.length}
+              />
+            </div>
+          </div>
+
+          {/* Bottom Row: Recent Activities (Responsive Table + Mobile Cards) */}
+          <RecentActivitiesTable
+            leads={filteredActivities}
+            loading={leadsLoading}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedStatusFilter={selectedStatusFilter}
+            onStatusFilterChange={setSelectedStatusFilter}
+            selectedLeadIds={selectedLeadIds}
+            onToggleSelectLead={toggleSelectLead}
+            onToggleSelectAll={toggleSelectAll}
+            copiedId={copiedId}
+            onCopyEmail={handleCopyEmail}
+          />
         </div>
       </div>
     </div>

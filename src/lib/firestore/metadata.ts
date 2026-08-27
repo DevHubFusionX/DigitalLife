@@ -10,25 +10,18 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import type { Category, Format } from '../../types/metadata';
 
-export interface Category {
-  id: string;
-  name: string;
-}
-
-export interface Format {
-  id: string;
-  name: string;
-}
+export type { Category, Format };
 
 // ─── Categories ──────────────────────────────────────────────────────────────
 
 export function subscribeCategories(callback: (categories: Category[]) => void) {
   const q = query(collection(db, 'categories'), orderBy('name', 'asc'));
   return onSnapshot(q, (snapshot) => {
-    const categories = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().name as string,
+    const categories = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      name: docSnap.data().name as string,
     }));
     callback(categories);
   });
@@ -48,9 +41,9 @@ export async function deleteCategory(id: string): Promise<void> {
 export function subscribeFormats(callback: (formats: Format[]) => void) {
   const q = query(collection(db, 'formats'), orderBy('name', 'asc'));
   return onSnapshot(q, (snapshot) => {
-    const formats = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().name as string,
+    const formats = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      name: docSnap.data().name as string,
     }));
     callback(formats);
   });

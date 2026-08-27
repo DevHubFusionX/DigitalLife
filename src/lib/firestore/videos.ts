@@ -8,19 +8,13 @@ import {
   serverTimestamp,
   query,
   orderBy,
-  Timestamp,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { VideoResource } from '../../types/video';
+import { toIsoTimestamp } from './common';
 
 const COLLECTION = 'videos';
-
-function toIso(value: unknown): string {
-  if (value instanceof Timestamp) return value.toDate().toISOString();
-  if (typeof value === 'string') return value;
-  return new Date().toISOString();
-}
 
 /**
  * Subscribes to the videos Firestore collection (real-time).
@@ -39,7 +33,7 @@ export function subscribeToVideos(
         return {
           ...data,
           id: d.id,
-          createdAt: toIso(data.createdAt),
+          createdAt: toIsoTimestamp(data.createdAt),
         } as VideoResource;
       });
       onData(videos);

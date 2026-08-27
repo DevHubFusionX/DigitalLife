@@ -5,6 +5,7 @@ import CoverUpload from './CoverUpload';
 import { addResource, updateResource } from '../../lib/firestore/resources';
 import { useMetadata } from '../../hooks/useMetadata';
 import { uploadResourceFile } from '../../lib/cloudinary';
+import { useToast } from '../../hooks/useToast';
 
 const GRADIENT_OPTIONS = [
   { label: 'Dark Navy', value: 'from-[#0f172a] to-[#1e293b]' },
@@ -43,6 +44,8 @@ interface ResourceFormProps {
 
 export default function ResourceForm({ editTarget, onClose }: ResourceFormProps) {
   const { categories, formats, loading: metadataLoading } = useMetadata();
+  const { success, error: toastError } = useToast();
+
   const [form, setForm] = useState<typeof EMPTY>({ ...EMPTY });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,11 +61,23 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
     setFileError(null);
     setFileUploading(true);
     setFileProgress(0);
+
+    // Auto-fill file size if empty
+    const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
+    const extension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+
     try {
       const url = await uploadResourceFile(file, setFileProgress);
-      setForm((prev) => ({ ...prev, downloadUrl: url }));
+      setForm((prev) => ({
+        ...prev,
+        downloadUrl: url,
+        fileSize: prev.fileSize || `${sizeInMb} MB (${extension})`,
+      }));
+      success(`Resource file "${file.name}" uploaded successfully.`);
     } catch (err) {
-      setFileError(err instanceof Error ? err.message : 'File upload failed.');
+      const msg = err instanceof Error ? err.message : 'File upload failed.';
+      setFileError(msg);
+      toastError(msg);
     } finally {
       setFileUploading(false);
     }
@@ -90,7 +105,6 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
     setForm((prev) => ({ ...prev, [field]: e.target.checked }));
   };
 
-  // Dynamic list helpers
   const addListItem = (field: 'deliverables' | 'outcomes') =>
     setForm((prev) => ({ ...prev, [field]: [...(prev[field] ?? []), ''] }));
 
@@ -112,27 +126,36 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
     setSaving(true);
     setError(null);
     try {
+      const priceNum = form.isFree ? 0 : Number(form.price);
+      if (!form.isFree && (!priceNum || priceNum <= 0)) {
+        throw new Error('Please enter a valid price greater than $0.00 for paid resources.');
+      }
+
       const payload = {
         ...form,
-        price: form.isFree ? 0 : Number(form.price),
+        price: priceNum,
         deliverables: (form.deliverables ?? []).filter(Boolean),
         outcomes: (form.outcomes ?? []).filter(Boolean),
         coverImage: form.coverImage ?? null,
         downloadUrl: form.downloadUrl || null,
-        // Compatibility fields for legacy database schema
         topic: form.category,
         coverUrl: form.coverImage ?? null,
         coverGradient: form.coverBg,
         contentType: form.isFree ? 'Free' : 'Premium',
       };
+
       if (editTarget) {
         await updateResource(editTarget.id, payload);
+        success('Resource updated successfully.');
       } else {
         await addResource(payload);
+        success('New resource added to library.');
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save resource.');
+      const msg = err instanceof Error ? err.message : 'Failed to save resource.';
+      setError(msg);
+      toastError(msg);
     } finally {
       setSaving(false);
     }
@@ -142,16 +165,23 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
     'w-full bg-slate-50 border border-black/10 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095] transition-colors';
   const labelCls = 'text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1.5';
 
+  const ngnPriceEstimate = Math.round((Number(form.price) || 0) * 1600);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl z-10 flex flex-col max-h-[92vh]">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl z-10 flex flex-col max-h-[92vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-black/5 shrink-0">
-          <h3 className="text-base font-black text-slate-950">
-            {editTarget ? 'Edit Resource' : 'Add New Resource'}
-          </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-black/5 shrink-0 bg-white">
+          <div>
+            <h3 className="text-base font-black text-slate-950">
+              {editTarget ? 'Edit Resource' : 'Add New Resource'}
+            </h3>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+              Upload templates, playbooks, or guides for public download.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer border-none bg-transparent">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -168,7 +198,7 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
 
           {/* Gradient picker */}
           <div>
-            <label className={labelCls}>Cover Gradient (fallback)</label>
+            <label className={labelCls}>Fallback Cover Gradient</label>
             <div className="flex flex-wrap gap-2">
               {GRADIENT_OPTIONS.map((g) => (
                 <button
@@ -176,7 +206,7 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                   type="button"
                   onClick={() => setForm((prev) => ({ ...prev, coverBg: g.value }))}
                   title={g.label}
-                  className={`w-8 h-8 rounded-lg bg-linear-to-br ${g.value} border-2 transition-all ${
+                  className={`w-8 h-8 rounded-lg bg-linear-to-br ${g.value} border-2 transition-all cursor-pointer ${
                     form.coverBg === g.value ? 'border-[#3e4095] scale-110' : 'border-transparent'
                   }`}
                 />
@@ -187,14 +217,14 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Title */}
             <div className="sm:col-span-2">
-              <label className={labelCls}>Title</label>
-              <input required type="text" value={form.title} onChange={set('title')} placeholder="Resource title" className={inputCls} />
+              <label className={labelCls}>Resource Title *</label>
+              <input required type="text" value={form.title} onChange={set('title')} placeholder="e.g. 2026 State of Scale Report" className={inputCls} />
             </div>
 
             {/* Cover Title */}
             <div>
-              <label className={labelCls}>Cover Label</label>
-              <input required type="text" value={form.coverTitle} onChange={set('coverTitle')} placeholder="Displayed on card cover" className={inputCls} />
+              <label className={labelCls}>Cover Badge / Label *</label>
+              <input required type="text" value={form.coverTitle} onChange={set('coverTitle')} placeholder="Displayed on card badge" className={inputCls} />
             </div>
 
             {/* Category */}
@@ -242,14 +272,14 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                     Free Resource
                   </label>
                   <span className="text-[10px] text-slate-400 font-semibold block">
-                    Gated with basic email lead capture only.
+                    Gated with basic lead capture only.
                   </span>
                 </div>
               </div>
 
               {!form.isFree && (
-                <div className="w-full sm:w-40 shrink-0">
-                  <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                <div className="w-full sm:w-56 shrink-0 space-y-1">
+                  <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
                     Price (USD)
                   </label>
                   <div className="relative">
@@ -259,27 +289,32 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                     <input
                       required
                       type="number"
-                      min="0.01"
+                      min="0.50"
                       step="0.01"
                       value={form.price ?? ''}
                       onChange={set('price')}
                       placeholder="9.99"
-                      className="w-full bg-white border border-black/10 rounded-xl pl-6 pr-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095] transition-colors"
+                      className="w-full bg-white border border-black/10 rounded-xl pl-7 pr-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095] transition-colors"
                     />
                   </div>
+                  {Number(form.price) > 0 && (
+                    <span className="text-[10px] font-bold text-emerald-600 block">
+                      ≈ ₦{ngnPriceEstimate.toLocaleString()} via Paystack
+                    </span>
+                  )}
                 </div>
               )}
             </div>
 
             {/* File Upload Section */}
             <div className="sm:col-span-2 space-y-2">
-              <label className={labelCls}>Resource File (PDF, DOCX, ZIP, etc.)</label>
+              <label className={labelCls}>Resource File Attachment (PDF, DOCX, ZIP, etc.)</label>
               <div className="flex gap-3 items-center">
                 <input
                   type="text"
                   value={form.downloadUrl || ''}
                   onChange={set('downloadUrl')}
-                  placeholder="Paste direct download URL or upload a file..."
+                  placeholder="Paste direct download URL or upload via Cloudinary..."
                   className="grow bg-slate-50 border border-black/10 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
                 />
                 
@@ -328,7 +363,7 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                     Featured Resource
                   </label>
                   <span className="text-[10px] text-slate-400 font-semibold block">
-                    Display prominently in the Featured section on the Resources page.
+                    Highlighted prominently in the top section of the public catalog.
                   </span>
                 </div>
               </div>
@@ -336,27 +371,27 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
 
             {/* File Size */}
             <div>
-              <label className={labelCls}>File Size (optional)</label>
+              <label className={labelCls}>File Size / Format Label (optional)</label>
               <input type="text" value={form.fileSize ?? ''} onChange={set('fileSize')} placeholder="e.g. 4.8 MB (PDF)" className={inputCls} />
             </div>
 
             {/* Software Required */}
-            <div className="sm:col-span-2">
+            <div>
               <label className={labelCls}>Software Required (optional)</label>
               <input type="text" value={form.softwareRequired ?? ''} onChange={set('softwareRequired')} placeholder="e.g. Notion, Google Sheets" className={inputCls} />
             </div>
 
             {/* YouTube URL */}
             <div className="sm:col-span-2">
-              <label className={labelCls}>Attached YouTube URL (optional)</label>
+              <label className={labelCls}>Attached YouTube Video Tutorial URL (optional)</label>
               <input type="url" value={form.youtubeUrl ?? ''} onChange={set('youtubeUrl')} placeholder="https://youtube.com/watch?v=..." className={inputCls} />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className={labelCls}>Description</label>
-            <textarea required rows={3} value={form.description} onChange={set('description')} placeholder="Short description shown on the card" className={`${inputCls} resize-none`} />
+            <label className={labelCls}>Resource Description *</label>
+            <textarea required rows={3} value={form.description} onChange={set('description')} placeholder="Compelling summary shown on the card and detail page..." className={`${inputCls} resize-none`} />
           </div>
 
           {/* Deliverables */}
@@ -373,13 +408,13 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                     className={inputCls}
                   />
                   <button type="button" onClick={() => removeListItem('deliverables', idx)}
-                    className="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 flex items-center justify-center shrink-0 transition-colors">
+                    className="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 flex items-center justify-center shrink-0 transition-colors cursor-pointer border-none">
                     <Minus className="w-3.5 h-3.5 text-rose-500" />
                   </button>
                 </div>
               ))}
               <button type="button" onClick={() => addListItem('deliverables')}
-                className="flex items-center gap-1.5 text-[10px] font-bold text-[#3e4095] hover:text-[#2e3075] transition-colors">
+                className="flex items-center gap-1.5 text-[10px] font-bold text-[#3e4095] hover:text-[#2e3075] transition-colors cursor-pointer border-none bg-transparent">
                 <Plus className="w-3 h-3" /> Add deliverable
               </button>
             </div>
@@ -387,7 +422,7 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
 
           {/* Outcomes */}
           <div>
-            <label className={labelCls}>Target Outcomes</label>
+            <label className={labelCls}>Target Outcomes & Benefits</label>
             <div className="space-y-2">
               {(form.outcomes ?? []).map((item, idx) => (
                 <div key={idx} className="flex gap-2">
@@ -399,29 +434,29 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
                     className={inputCls}
                   />
                   <button type="button" onClick={() => removeListItem('outcomes', idx)}
-                    className="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 flex items-center justify-center shrink-0 transition-colors">
+                    className="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 flex items-center justify-center shrink-0 transition-colors cursor-pointer border-none">
                     <Minus className="w-3.5 h-3.5 text-rose-500" />
                   </button>
                 </div>
               ))}
               <button type="button" onClick={() => addListItem('outcomes')}
-                className="flex items-center gap-1.5 text-[10px] font-bold text-[#3e4095] hover:text-[#2e3075] transition-colors">
+                className="flex items-center gap-1.5 text-[10px] font-bold text-[#3e4095] hover:text-[#2e3075] transition-colors cursor-pointer border-none bg-transparent">
                 <Plus className="w-3 h-3" /> Add outcome
               </button>
             </div>
           </div>
 
-          {error && <p className="text-xs font-bold text-rose-500">{error}</p>}
+          {error && <p className="text-xs font-bold text-rose-500 bg-rose-50 p-3 rounded-xl">{error}</p>}
         </form>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-black/5 shrink-0 flex gap-3">
+        <div className="px-6 py-4 border-t border-black/5 shrink-0 flex gap-3 bg-white">
           <button type="button" onClick={onClose}
-            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition-colors">
+            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer border-none">
             Cancel
           </button>
           <button type="submit" form="resource-form" disabled={saving || metadataLoading}
-            className="flex-1 bg-[#3e4095] hover:bg-[#2e3075] disabled:opacity-60 text-white font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+            className="flex-1 bg-[#3e4095] hover:bg-[#2e3075] disabled:opacity-60 text-white font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shadow-sm">
             {saving && <Loader2 className="w-3 h-3 animate-spin" />}
             {editTarget ? 'Save Changes' : 'Add Resource'}
           </button>
@@ -430,4 +465,3 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
     </div>
   );
 }
-

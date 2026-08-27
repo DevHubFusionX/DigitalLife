@@ -8,7 +8,6 @@ import {
   query,
   orderBy,
   setDoc,
-  Timestamp,
   type Unsubscribe,
   writeBatch,
   getDocs,
@@ -16,15 +15,9 @@ import {
 import { db } from '../firebase';
 import type { Playbook } from '../../types/playbook';
 import { DEFAULT_PLAYBOOKS } from '../../data/defaultPlaybooks';
+import { toIsoTimestamp } from './common';
 
 const COLLECTION = 'playbooks';
-
-/** Normalises a Firestore Timestamp or string to an ISO string. */
-function toIso(value: unknown): string {
-  if (value instanceof Timestamp) return value.toDate().toISOString();
-  if (typeof value === 'string') return value;
-  return new Date().toISOString();
-}
 
 /**
  * Subscribes to the playbooks Firestore collection (real-time).
@@ -50,8 +43,8 @@ export function subscribeToPlaybooks(
           linkedResourceId: data.linkedResourceId || null,
           linkedResourceLabel: data.linkedResourceLabel || '',
           order: data.order ?? 0,
-          createdAt: toIso(data.createdAt),
-          updatedAt: toIso(data.updatedAt),
+          createdAt: toIsoTimestamp(data.createdAt),
+          updatedAt: toIsoTimestamp(data.updatedAt),
         } as Playbook;
       });
       onData(playbooks);

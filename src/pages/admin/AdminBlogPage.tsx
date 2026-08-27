@@ -1,20 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, BookOpen } from 'lucide-react';
-import BlogForm from '../../components/admin/BlogForm';
-import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+import { Plus, BookOpen, Loader2 } from 'lucide-react';
 import { useBlog } from '../../hooks/useBlog';
+import { useMetadata } from '../../hooks/useMetadata';
+import { useToast } from '../../hooks/useToast';
 import { deletePost } from '../../lib/firestore/blog';
 import type { BlogPost } from '../../types/blog';
 
+import BlogStatsBar from '../../components/admin/blog/BlogStatsBar';
+import BlogFilterBar from '../../components/admin/blog/BlogFilterBar';
+import BlogCardGrid from '../../components/admin/blog/BlogCardGrid';
+import BlogTable from '../../components/admin/blog/BlogTable';
+import BlogForm from '../../components/admin/BlogForm';
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
+
 export default function AdminBlogPage() {
   const { posts, loading } = useBlog();
+  const { categories } = useMetadata();
+  const { success, error: toastError } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<BlogPost | null>(null);
-  const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Filters & View state
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   useEffect(() => {
     if (searchParams.get('action') === 'new') {
@@ -24,12 +38,18 @@ export default function AdminBlogPage() {
     }
   }, [searchParams, setSearchParams]);
 
-  const filtered = posts.filter(
-    (p) =>
+  const filtered = posts.filter((p) => {
+    const matchesSearch =
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.author.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
-  );
+      p.category.toLowerCase().includes(search.toLowerCase()) ||
+      (p.subtitle || '').toLowerCase().includes(search.toLowerCase()) ||
+      (p.introduction || '').toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
+
+    return matchesSearch && matchesCategory;
+  });
 
   const openAdd = () => {
     setEditTarget(null);
@@ -51,156 +71,102 @@ export default function AdminBlogPage() {
     setIsDeleting(true);
     try {
       await deletePost(deletingId);
+      success('Article deleted successfully.');
+      setDeletingId(null);
+    } catch {
+      toastError('Failed to delete article.');
     } finally {
       setIsDeleting(false);
-      setDeletingId(null);
     }
   };
 
-  const CATEGORY_COLORS: Record<string, string> = {
-    Operations: 'bg-blue-50 text-blue-700',
-    Strategy: 'bg-violet-50 text-violet-700',
-    Branding: 'bg-rose-50 text-rose-700',
-    Systems: 'bg-teal-50 text-teal-700',
-  };
-
   return (
-    <div className="space-y-6 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-[1440px] mx-auto pb-12 font-sans select-none">
+      {/* 1. Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black text-slate-950 tracking-tight">Blog Posts</h1>
-          <p className="text-xs text-slate-400 font-semibold mt-0.5">
-            {posts.length} article{posts.length !== 1 ? 's' : ''} published
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Articles &amp; Editorial Hub
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 font-semibold mt-0.5">
+            Publish thought-leadership insights, business scaling playbooks, and strategic guides.
           </p>
         </div>
+
         <button
-          id="add-blog-post-btn"
           onClick={openAdd}
-          className="flex items-center gap-2 bg-[#3e4095] hover:bg-[#2e3075] text-white font-bold text-xs px-5 py-3 rounded-xl transition-colors"
+          className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-950 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs border-none cursor-pointer self-start sm:self-auto touch-manipulation"
         >
-          <Plus className="w-4 h-4" /> Add Post
+          <Plus className="w-3.5 h-3.5" /> Write Post
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search posts…"
-          className="w-full bg-white border border-black/10 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095] transition-colors"
-        />
-      </div>
+      {/* 2. Top Summary KPI Stats */}
+      <BlogStatsBar posts={posts} />
 
-      {/* Table */}
+      {/* 3. Filter Bar & View Toggle */}
+      <BlogFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+        categories={categories}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        totalCount={posts.length}
+        onAddNew={openAdd}
+      />
+
+      {/* 4. Main Articles List */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-6 h-6 border-2 border-[#3e4095] border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 text-[#ff5f38] animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-bold">No posts found.</p>
-          <p className="text-xs mt-1">Click "Add Post" or seed defaults from Settings.</p>
+        <div className="bg-white rounded-[28px] p-12 text-center border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center mx-auto text-slate-400">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-black text-slate-900">No articles found</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            {search || selectedCategory
+              ? 'No posts match your current search criteria. Try clearing your filters.'
+              : 'Your blog editorial hub is empty. Click "Write Post" to draft your first article.'}
+          </p>
+          {(search || selectedCategory) && (
+            <button
+              onClick={() => {
+                setSearch('');
+                setSelectedCategory('');
+              }}
+              className="text-xs font-bold text-[#ff5f38] hover:underline bg-transparent border-none cursor-pointer"
+            >
+              Clear All Filters
+            </button>
+          )}
         </div>
+      ) : viewMode === 'grid' ? (
+        <BlogCardGrid
+          posts={filtered}
+          onEdit={openEdit}
+          onDelete={(id) => setDeletingId(id)}
+        />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-black/5">
-          <table className="w-full text-xs font-semibold">
-            <thead className="bg-slate-50 border-b border-black/5">
-              <tr>
-                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Cover
-                </th>
-                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Title
-                </th>
-                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400 hidden md:table-cell">
-                  Category
-                </th>
-                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400 hidden lg:table-cell">
-                  Author
-                </th>
-                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400 hidden sm:table-cell">
-                  Date
-                </th>
-                <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/5 bg-white">
-              {filtered.map((post) => (
-                <tr key={post.id} className="hover:bg-slate-50 transition-colors">
-                  {/* Cover swatch */}
-                  <td className="px-4 py-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg bg-linear-to-br ${post.coverBg} flex items-end p-1.5`}
-                    >
-                      <span className="text-[6px] font-black text-[#ffd148] uppercase leading-none line-clamp-1">
-                        {post.coverLabel}
-                      </span>
-                    </div>
-                  </td>
-                  {/* Title + slug */}
-                  <td className="px-4 py-3">
-                    <p className="font-bold text-slate-950 truncate max-w-50">{post.title}</p>
-                    <p className="text-slate-400 text-[10px] font-mono truncate max-w-50">
-                      /blog/{post.id}
-                    </p>
-                  </td>
-                  {/* Category */}
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    <span
-                      className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full ${
-                        CATEGORY_COLORS[post.category] ?? 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      {post.category}
-                    </span>
-                  </td>
-                  {/* Author */}
-                  <td className="px-4 py-3 hidden lg:table-cell text-slate-600 truncate max-w-30">
-                    {post.author}
-                  </td>
-                  {/* Date */}
-                  <td className="px-4 py-3 hidden sm:table-cell text-slate-400">{post.date}</td>
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => openEdit(post)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#3e4095]/10 flex items-center justify-center transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-3 h-3 text-slate-600" />
-                      </button>
-                      <button
-                        onClick={() => setDeletingId(post.id)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-50 flex items-center justify-center transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3 h-3 text-rose-500" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <BlogTable
+          posts={filtered}
+          onEdit={openEdit}
+          onDelete={(id) => setDeletingId(id)}
+        />
       )}
 
-      {/* Blog Form Modal */}
+      {/* 5. Blog Form Modal (Write / Edit with Live Preview) */}
       {formOpen && <BlogForm editTarget={editTarget} onClose={closeForm} />}
 
-      {/* Delete confirm */}
+      {/* 6. Confirm Delete Modal */}
       {deletingId && (
         <ConfirmDeleteModal
           title="Delete Blog Post"
-          message="This will permanently remove this article from Firestore. This action cannot be undone."
+          message="Are you sure you want to delete this article? This will permanently remove it from the live website."
           onConfirm={handleDelete}
           onCancel={() => setDeletingId(null)}
           isLoading={isDeleting}

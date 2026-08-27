@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function TermsPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  usePageSEO({
+    title: 'Terms & Conditions | Digitalife Ehub',
+    description: 'Terms and Conditions for Digitalife Ehub resources and services.',
+  });
 
   return (
     <div className="bg-[#fffdf5] text-slate-900 pt-32 pb-24 min-h-screen">

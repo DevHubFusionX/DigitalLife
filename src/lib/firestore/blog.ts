@@ -15,6 +15,7 @@ import {
 import { db } from '../firebase';
 import type { BlogPost } from '../../types/blog';
 import { DEFAULT_POSTS } from '../../data/defaultPosts';
+import { toIsoTimestamp } from './common';
 
 const COLLECTION = 'posts';
 
@@ -27,9 +28,8 @@ export function subscribeToPosts(callback: (posts: BlogPost[]) => void) {
       return {
         id: docSnap.id,
         ...data,
-        // Fallback for dates if they are Firestore Timestamps or missing
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
+        createdAt: toIsoTimestamp(data.createdAt),
+        updatedAt: toIsoTimestamp(data.updatedAt),
       } as BlogPost;
     });
     callback(posts);

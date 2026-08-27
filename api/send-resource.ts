@@ -13,7 +13,7 @@ export default async function handler(request: Request) {
   let body;
   try {
     body = await request.json();
-  } catch (err) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },

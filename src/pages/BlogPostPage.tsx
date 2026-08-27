@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Clock, Calendar, Share2, Bookmark, CheckCircle, Loader2 } from 'lucide-react';
 import { useBlog } from '../hooks/useBlog';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function BlogPostPage() {
   const { id } = useParams<{ id: string }>();
@@ -9,9 +10,12 @@ export default function BlogPostPage() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
+  const post = posts.find((p) => p.id === id) ?? null;
+
+  usePageSEO({
+    title: post ? `${post.title} | Digitalife Ehub` : 'Digitalife Insights | Digitalife Ehub',
+    description: post?.subtitle || post?.introduction,
+  });
 
   useEffect(() => {
     let ticking = false;
@@ -31,8 +35,6 @@ export default function BlogPostPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const post = posts.find((p) => p.id === id) ?? null;
-
   // Related reads: same category or same author, excluding current
   const relatedPosts = post
     ? posts
@@ -43,13 +45,6 @@ export default function BlogPostPage() {
     relatedPosts.length > 0
       ? relatedPosts
       : posts.filter((p) => p.id !== (post?.id ?? '')).slice(0, 3);
-
-  // Update document title once post is loaded
-  useEffect(() => {
-    if (post) {
-      document.title = `${post.title} | Digitalife Ehub`;
-    }
-  }, [post]);
 
   // Helper to handle link copying
   const copyLinkToClipboard = () => {

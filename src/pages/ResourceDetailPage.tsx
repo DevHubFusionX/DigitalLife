@@ -1,30 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play, User, CreditCard } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Check, ArrowRight, Mail, Loader2, Play, User, CreditCard, Share2, Copy, CheckCircle2, MessageCircle } from 'lucide-react';
 import { useResources } from '../hooks/useResources';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { getYouTubeEmbedUrl, extractYouTubeId } from '../lib/youtube';
 import { openWhatsApp } from '../lib/whatsapp';
 import { addLead } from '../lib/firestore/leads';
 import { payWithPaystack } from '../lib/paystack';
+import { useToast } from '../hooks/useToast';
+
+function triggerDirectDownload(url: string | null | undefined, title: string) {
+  const link = document.createElement('a');
+  link.href = url || '/logo.svg';
+  link.download = `${title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+async function sendResourceEmail(data: {
+  name: string;
+  email: string;
+  resourceId: string;
+  resourceTitle: string;
+  downloadUrl?: string | null;
+}) {
+  try {
+    await fetch('/api/send-resource', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn('Failed to send email via API:', err);
+  }
+}
 
 export default function ResourceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { resources, loading } = useResources();
+  const { success, error: toastError, info } = useToast();
 
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const resource = resources.find((r) => r.id === id) ?? resources[0];
 
+  usePageSEO({
+    title: resource ? `${resource.title} | Digitalife Resource Library` : 'Resource Library | Digitalife Ehub',
+    description: resource?.description,
+  });
+
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name) return;
+    if (!email || !name || !resource) return;
     setIsLoading(true);
     try {
       await addLead({
@@ -34,43 +68,26 @@ export default function ResourceDetailPage() {
         resourceTitle: resource.title,
       });
 
-      // Try sending the email via serverless function
-      try {
-        await fetch('/api/send-resource', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: name.trim(),
-            email: email.trim(),
-            resourceId: resource.id,
-            resourceTitle: resource.title,
-            downloadUrl: resource.downloadUrl,
-          }),
-        });
-      } catch (err) {
-        console.warn('Failed to send email via API:', err);
-      }
+      await sendResourceEmail({
+        name: name.trim(),
+        email: email.trim(),
+        resourceId: resource.id,
+        resourceTitle: resource.title,
+        downloadUrl: resource.downloadUrl,
+      });
+      success(`Resource unlocked! We sent a copy to ${email}.`, 'Download Ready');
     } catch (err) {
       console.warn('Failed to save lead to Firestore:', err);
     } finally {
       setIsLoading(false);
       setFormSubmitted(true);
-      
-      // Automatic download trigger
-      const link = document.createElement('a');
-      link.href = resource.downloadUrl || '/logo.svg';
-      link.download = `${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      triggerDirectDownload(resource.downloadUrl, resource.title);
     }
   };
 
   const handlePaidUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name) return;
+    if (!email || !name || !resource) return;
     setIsLoading(true);
 
     try {
@@ -79,8 +96,11 @@ export default function ResourceDetailPage() {
       const amountInNGN = Math.round(usdPrice * conversionRate);
       const amountInKobo = amountInNGN * 100;
       const ref = `ref_${Math.floor(Math.random() * 1000000000) + 1}`;
+      const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
 
-      const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_b52968db75e336b940e70ba6297395a12eb1e428';
+      if (!paystackKey) {
+        throw new Error('Paystack public key is not configured. Please use offline WhatsApp checkout.');
+      }
 
       await payWithPaystack({
         key: paystackKey,
@@ -90,7 +110,6 @@ export default function ResourceDetailPage() {
         ref,
         onSuccess: async (response) => {
           try {
-            // Save lead to Firestore with payment details
             await addLead({
               name: name.trim(),
               email: email.trim(),
@@ -104,45 +123,35 @@ export default function ResourceDetailPage() {
             console.warn('Failed to save payment lead to Firestore:', err);
           }
 
-          // Trigger email send via Vercel serverless function
-          try {
-            await fetch('/api/send-resource', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                name: name.trim(),
-                email: email.trim(),
-                resourceId: resource.id,
-                resourceTitle: resource.title,
-                downloadUrl: resource.downloadUrl,
-              }),
-            });
-          } catch (err) {
-            console.warn('Failed to send email via API:', err);
-          }
+          await sendResourceEmail({
+            name: name.trim(),
+            email: email.trim(),
+            resourceId: resource.id,
+            resourceTitle: resource.title,
+            downloadUrl: resource.downloadUrl,
+          });
 
           setFormSubmitted(true);
           setIsLoading(false);
-
-          // Trigger automatic browser download
-          const link = document.createElement('a');
-          link.href = resource.downloadUrl || '/logo.svg';
-          link.download = `${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          success('Payment approved! Download starting and email copy dispatched.', 'Payment Successful');
+          triggerDirectDownload(resource.downloadUrl, resource.title);
         },
         onCancel: () => {
           setIsLoading(false);
-          alert('Payment was cancelled.');
+          info('Payment checkout was closed.');
         },
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoading(false);
-      alert(err.message || 'Payment initiation failed.');
+      const msg = err instanceof Error ? err.message : 'Payment initiation failed.';
+      toastError(msg);
     }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    success('Resource link copied to clipboard!');
+    setShareOpen(false);
   };
 
   if (loading) {
@@ -163,6 +172,8 @@ export default function ResourceDetailPage() {
   }
 
   const youtubeId = resource.youtubeUrl ? extractYouTubeId(resource.youtubeUrl) : null;
+  const currentUrl = window.location.href;
+  const shareText = `Check out "${resource.title}" from Digitalife Ehub:`;
 
   return (
     <div className="bg-[#fffdf5] text-slate-900 pt-20 pb-24">
@@ -176,7 +187,6 @@ export default function ResourceDetailPage() {
 
       {/* HERO SECTION */}
       <section className="bg-slate-950 text-white py-16 md:py-24 relative overflow-hidden">
-        {/* Subtle background decoration */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(62,64,149,0.15),transparent)] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
@@ -189,6 +199,15 @@ export default function ResourceDetailPage() {
               <span className="text-[10px] font-black uppercase text-slate-300 tracking-wider bg-white/5 px-3 py-1.5 rounded-full">
                 {resource.format}
               </span>
+              {resource.isFree ? (
+                <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+                  Free Download
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full">
+                  ${resource.price?.toFixed(2)} USD
+                </span>
+              )}
             </div>
             
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
@@ -199,7 +218,7 @@ export default function ResourceDetailPage() {
               {resource.description}
             </p>
             
-            <div className="flex items-center gap-4 pt-4">
+            <div className="flex items-center gap-4 pt-4 relative">
               <button
                 onClick={() => {
                   document.getElementById('access-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -208,18 +227,44 @@ export default function ResourceDetailPage() {
               >
                 <Download className="w-4 h-4" /> GET ACCESS NOW
               </button>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert('Resource link copied to clipboard!');
-                }}
-                className="w-12 h-12 rounded-full border border-white/20 hover:border-white/40 flex items-center justify-center transition-colors cursor-pointer bg-white/5 text-white"
-                title="Share Resource"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.748a3.075 3.075 0 110-1.496m0 1.496a3.075 3.075 0 100 1.496m0-1.496L15.316 15m-6.632-4.252L15.316 9" />
-                </svg>
-              </button>
+
+              {/* Share Button & Popover */}
+              <div className="relative">
+                <button
+                  onClick={() => setShareOpen((s) => !s)}
+                  className="w-12 h-12 rounded-full border border-white/20 hover:border-white/40 flex items-center justify-center transition-colors cursor-pointer bg-white/5 text-white"
+                  title="Share Resource"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+
+                {shareOpen && (
+                  <div className="absolute left-0 top-14 bg-slate-900 border border-white/10 rounded-2xl p-2 shadow-2xl z-30 min-w-44 flex flex-col gap-1">
+                    <button
+                      onClick={handleCopyLink}
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors text-left cursor-pointer border-none bg-transparent"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy Link
+                    </button>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors no-underline"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" /> WhatsApp
+                    </a>
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors no-underline"
+                    >
+                      <span className="font-mono text-xs">𝕏</span> Share on X
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -262,7 +307,6 @@ export default function ResourceDetailPage() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Left Column: What's Included & Outcomes */}
           <div className="lg:col-span-7 space-y-8">
-            {/* White card container for deliverables */}
             <div className="bg-white border border-black/5 rounded-3xl p-8 shadow-sm space-y-6">
               <div className="flex items-center gap-2 bg-[#3e4095]/5 border border-[#3e4095]/10 px-4 py-2.5 rounded-full self-start w-fit">
                 <Check className="w-4 h-4 text-white bg-slate-950 rounded-full p-0.5" />
@@ -287,7 +331,7 @@ export default function ResourceDetailPage() {
 
             {/* Target Outcomes */}
             <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-950 uppercase tracking-wider">Target Outcomes & Benefits</h3>
+              <h3 className="text-sm font-black text-slate-950 uppercase tracking-wider">Target Outcomes &amp; Benefits</h3>
               {resource.outcomes && resource.outcomes.length > 0 ? (
                 <ul className="space-y-3 p-0 list-none">
                   {resource.outcomes.map((item, idx) => (
@@ -306,7 +350,6 @@ export default function ResourceDetailPage() {
           {/* Right Column: Metadata Sidebar Card */}
           <div className="lg:col-span-5" id="access-section">
             <div className="bg-slate-950 text-white rounded-3xl p-8 shadow-xl space-y-6">
-              {/* Properties list */}
               <div className="space-y-4 border-b border-white/10 pb-6">
                 <div className="flex justify-between items-center text-xs font-semibold">
                   <span className="text-slate-400">Topic Group</span>
@@ -328,7 +371,6 @@ export default function ResourceDetailPage() {
                 </div>
               </div>
 
-              {/* Informative bullet points */}
               <div className="space-y-3 text-[11px] font-semibold text-slate-300">
                 <div className="flex items-start gap-2.5">
                   <Check className="w-4 h-4 text-[#ffd148] shrink-0 mt-0.5" />
@@ -418,15 +460,18 @@ export default function ResourceDetailPage() {
                   </form>
                 ) : (
                   <div className="space-y-4 text-center py-2">
-                    <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                      <Check className="w-5 h-5 text-emerald-500" />
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                     </div>
-                    <p className="text-xs font-bold text-white">
-                      {resource.isFree ? 'Resource Unlocked Successfully!' : 'Payment Completed Successfully!'}
-                    </p>
-                    <p className="text-[11px] text-slate-300 font-semibold">
-                      We have sent a copy of the resource to <strong>{email}</strong>.
-                    </p>
+                    <div>
+                      <p className="text-sm font-black text-white">
+                        {resource.isFree ? 'Resource Unlocked Successfully!' : 'Payment Completed Successfully!'}
+                      </p>
+                      <p className="text-xs text-slate-300 font-semibold mt-1">
+                        A permanent download link has been dispatched to <strong>{email}</strong> via Resend.
+                      </p>
+                    </div>
+
                     <a
                       href={resource.downloadUrl || '/logo.svg'}
                       download={`${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`}
@@ -434,8 +479,16 @@ export default function ResourceDetailPage() {
                       rel="noopener noreferrer"
                       className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md no-underline"
                     >
-                      <FileText className="w-4 h-4" /> Direct Download Link
+                      <FileText className="w-4 h-4" /> Download File Again
                     </a>
+
+                    <button
+                      type="button"
+                      onClick={() => openWhatsApp(`Hi Digitalife Ehub, I just unlocked "${resource.title}" and have a quick question.`)}
+                      className="w-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-bold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-white/10 cursor-pointer"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" /> Contact Support on WhatsApp
+                    </button>
                   </div>
                 )}
               </div>
@@ -470,7 +523,7 @@ export default function ResourceDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
             <span className="text-[10px] font-black text-[#3e4095] uppercase tracking-widest block mb-2">RECOMMENDED LEARNING</span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-950">Related Templates & Playbooks</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-950">Related Templates &amp; Playbooks</h2>
           </div>
           <Link to="/resources" className="text-xs font-bold text-[#3e4095] hover:text-[#2e3075] transition-colors flex items-center gap-1.5 no-underline">
             Browse Resource Library <ArrowRight className="w-4 h-4" />
@@ -485,9 +538,8 @@ export default function ResourceDetailPage() {
               <Link
                 key={item.id}
                 to={`/resources/${item.id}`}
-                className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
+                className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer no-underline"
               >
-                {/* Cover */}
                 <div className={`h-40 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-5 flex flex-col justify-between`}>
                   {item.coverImage && (
                     <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-contain bg-slate-900" />
@@ -502,7 +554,6 @@ export default function ResourceDetailPage() {
                     </div>
                   </div>
                 </div>
-                {/* Details */}
                 <div className="p-5 flex flex-col justify-between grow">
                   <div>
                     <div className="flex items-center justify-between mb-1">
@@ -522,50 +573,6 @@ export default function ResourceDetailPage() {
                 </div>
               </Link>
             ))}
-          {resources.filter((r) => r.id !== resource.id && r.category === resource.category).length === 0 && (
-            resources
-              .filter((r) => r.id !== resource.id)
-              .slice(0, 3)
-              .map((item) => (
-                <Link
-                  key={item.id}
-                  to={`/resources/${item.id}`}
-                  className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
-                >
-                  <div className={`h-40 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-5 flex flex-col justify-between`}>
-                    {item.coverImage && (
-                      <img src={item.coverImage} alt={item.title} className="absolute inset-0 w-full h-full object-contain bg-slate-900" />
-                    )}
-                    <div className="relative z-10 flex flex-col justify-between h-full">
-                      <span className="self-end bg-white/10 backdrop-blur-md border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
-                        {item.format}
-                      </span>
-                      <div>
-                        <span className="text-[9px] font-black text-[#ffd148] tracking-widest uppercase block mb-0.5">DIGITALIFE</span>
-                        <h3 className="text-white text-sm font-black tracking-tight leading-snug">{item.coverTitle || item.title}</h3>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-5 flex flex-col justify-between grow">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-extrabold text-[#3e4095] uppercase tracking-wider">{item.category}</span>
-                        {item.isFree ? (
-                          <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">Free</span>
-                        ) : (
-                          <span className="bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">${item.price?.toFixed(2)}</span>
-                        )}
-                      </div>
-                      <h4 className="text-slate-950 text-sm font-bold tracking-tight mb-1 group-hover:text-[#3e4095] transition-colors">{item.title}</h4>
-                      <p className="text-slate-500 text-[11px] font-semibold leading-relaxed line-clamp-2">{item.description}</p>
-                    </div>
-                    <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-950 mt-4 group-hover:text-[#3e4095] transition-colors self-start">
-                      {item.isFree ? 'Download' : `Buy — $${item.price?.toFixed(2)}`} <Download className="w-3 h-3" />
-                    </span>
-                  </div>
-                </Link>
-              ))
-          )}
         </div>
       </section>
 

@@ -1,32 +1,17 @@
-import { useEffect } from 'react';
 import { Compass, Share2, Layers, Globe, BookOpen, ArrowRight, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TwistingRibbon from '../components/ui/twisting-ribbon';
 import { openWhatsApp, WA_MESSAGES } from '../lib/whatsapp';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function ServicesPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = "Services | SOP Development & Small Business Formalization | Digitalife Ehub";
-    
-    // Update meta description
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute('content', 'Explore our professional SOP development services, small business formalization programs, corporate workflow designs, and standard operating procedures templates.');
-
-    // Update meta keywords
-    let metaKeywords = document.querySelector('meta[name="keywords"]');
-    if (!metaKeywords) {
-      metaKeywords = document.createElement('meta');
-      metaKeywords.setAttribute('name', 'keywords');
-      document.head.appendChild(metaKeywords);
-    }
-    metaKeywords.setAttribute('content', 'SOP development services, small business formalization, corporate workflow design, business system structuring, standard operating procedures template, strategic brand positioning, social media management with structure, e-commerce web development for small business, custom website design to convert, business roadmap consultation');
-  }, []);
+  usePageSEO({
+    title: 'Services | SOP Development & Small Business Formalization | Digitalife Ehub',
+    description:
+      'Explore our professional SOP development services, small business formalization programs, corporate workflow designs, and standard operating procedures templates.',
+    keywords:
+      'SOP development services, small business formalization, corporate workflow design, business system structuring, standard operating procedures template, strategic brand positioning, social media management with structure, e-commerce web development for small business, custom website design to convert, business roadmap consultation',
+  });
 
   const services = [
     {

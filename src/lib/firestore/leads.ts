@@ -5,20 +5,13 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  Timestamp,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Lead } from '../../types/lead';
+import { toIsoTimestamp } from './common';
 
 const COLLECTION = 'leads';
-
-/** Normalises a Firestore Timestamp or string to an ISO string. */
-function toIso(value: unknown): string {
-  if (value instanceof Timestamp) return value.toDate().toISOString();
-  if (typeof value === 'string') return value;
-  return new Date().toISOString();
-}
 
 /**
  * Subscribes to all leads in real-time, ordered by creation time descending.
@@ -39,7 +32,7 @@ export function subscribeToLeads(
           email: data.email || '',
           resourceId: data.resourceId || '',
           resourceTitle: data.resourceTitle || '',
-          createdAt: toIso(data.createdAt),
+          createdAt: toIsoTimestamp(data.createdAt),
           isPaid: data.isPaid || false,
           amountPaid: data.amountPaid || 0,
           paymentRef: data.paymentRef || '',

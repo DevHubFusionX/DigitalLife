@@ -1,28 +1,15 @@
-import { useEffect } from 'react';
 import { ArrowRight, Compass, Eye, Layers, Share2, Globe } from 'lucide-react';
 import { openWhatsApp, WA_MESSAGES, SELAR_CLARITY_CALL_URL } from '../lib/whatsapp';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function AboutPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = 'About Us | Digitalife Ehub — Business Development & Brand Management';
-
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute('content', 'Digitalife Ehub is a business development and brand management firm empowering MSMEs, SMEs, and early-stage entrepreneurs to build structured, scalable, and visible enterprises.');
-
-    let metaKeywords = document.querySelector('meta[name="keywords"]');
-    if (!metaKeywords) {
-      metaKeywords = document.createElement('meta');
-      metaKeywords.setAttribute('name', 'keywords');
-      document.head.appendChild(metaKeywords);
-    }
-    metaKeywords.setAttribute('content', 'business development service providers, business growth strategists, MSME structural gap experts, enterprise builders, corporate accountability systems, organic client acquisition strategy, business structure consultant');
-  }, []);
+  usePageSEO({
+    title: 'About Us | Digitalife Ehub — Business Development & Brand Management',
+    description:
+      'Digitalife Ehub is a business development and brand management firm empowering MSMEs, SMEs, and early-stage entrepreneurs to build structured, scalable, and visible enterprises.',
+    keywords:
+      'business development service providers, business growth strategists, MSME structural gap experts, enterprise builders, corporate accountability systems, organic client acquisition strategy, business structure consultant',
+  });
 
   const pillars = [
     {

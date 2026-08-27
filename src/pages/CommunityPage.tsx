@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
 import { ArrowRight, Target, Calendar, Briefcase, TrendingUp, Palette } from 'lucide-react';
 import { LightLines } from '../components/ui/light-lines';
 import { openWhatsApp, getWhatsAppUrl, WA_MESSAGES } from '../lib/whatsapp';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function CommunityPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = 'Visibility Clan · VClan | Digitalife Ehub';
-  }, []);
+  usePageSEO({
+    title: 'Visibility Clan · VClan | Digitalife Ehub',
+    description:
+      'The premier business growth ecosystem for African builders. Find clarity, implement operational structure, and scale brand visibility.',
+    keywords:
+      'Visibility Clan, VClan, African business community, MSME cohort, startup growth ecosystem, business mentorship Nigeria',
+  });
 
   const handleApplyClick = () => {
     openWhatsApp("Hi Digitalife Ehub, I would like to apply for the next VClan cohort program.");

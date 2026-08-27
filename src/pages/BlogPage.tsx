@@ -1,39 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Loader2, X, Tag } from 'lucide-react';
 import { useBlog } from '../hooks/useBlog';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function BlogPage() {
   const { posts, loading } = useBlog();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Topics');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = "Insights & Guides | How to Write an SOP & Scale Your Business | Digitalife Ehub";
-    
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute('content', 'Read practical guides on how to write an SOP for a small business, how to move from business hustle to structure, why your business is stagnant, and building team structures for MSMEs.');
-
-    let metaKeywords = document.querySelector('meta[name="keywords"]');
-    if (!metaKeywords) {
-      metaKeywords = document.createElement('meta');
-      metaKeywords.setAttribute('name', 'keywords');
-      document.head.appendChild(metaKeywords);
-    }
-    metaKeywords.setAttribute('content', 'how to write an SOP for a small business, how to move from business hustle to structure, why is my business stagnant despite high sales, how to build a team structure for an MSME, what are the structural gaps killing business growth, how to transition from informal business to corporate, how to create standard operating procedures without tech skills, how to turn business services into scalable digital products, how to monitor employee accountability in small business');
-  }, []);
+  usePageSEO({
+    title: 'Insights & Guides | How to Write an SOP & Scale Your Business | Digitalife Ehub',
+    description:
+      'Read practical guides on how to write an SOP for a small business, how to move from business hustle to structure, why your business is stagnant, and building team structures for MSMEs.',
+    keywords:
+      'how to write an SOP for a small business, how to move from business hustle to structure, why is my business stagnant despite high sales, how to build a team structure for an MSME, what are the structural gaps killing business growth, how to transition from informal business to corporate, how to create standard operating procedures without tech skills, how to turn business services into scalable digital products, how to monitor employee accountability in small business',
+  });
 
   // Derive unique categories from live data
   const categories = ['All Topics', ...Array.from(new Set(posts.map((p) => p.category))).sort()];
 
-  // Sorted posts: newest first (by createdAt then by date string fallback)
+  // Sorted posts: newest first
   const sortedPosts = [...posts].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
@@ -46,25 +33,25 @@ export default function BlogPage() {
     ? sortedPosts.filter((post) => {
         const matchesSearch =
           post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (post.subtitle ?? '').toLowerCase().includes(searchQuery.toLowerCase());
+          (post.subtitle ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.category.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === 'All Topics' || post.category === selectedCategory;
         return matchesSearch && matchesCategory;
       })
     : gridPosts;
 
-  // When filtering, show all matched posts in grid; hide the editorial top section
   const isFiltering = searchQuery !== '' || selectedCategory !== 'All Topics';
 
   return (
     <div className="bg-[#fffdf5] text-slate-900 pt-28 pb-20">
       
       {/* HEADER SECTION */}
-      <section className="max-w-7xl mx-auto px-6 mb-16">
+      <section className="max-w-7xl mx-auto px-6 mb-12">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-950 mb-4 leading-none">
           Digitalife Insights
         </h1>
         <p className="text-slate-500 text-sm md:text-base font-semibold max-w-xl">
-          Strategies, frameworks, and quiet reflections on scaling operations, clarifying positioning, and building brand authority.
+          Strategies, frameworks, and practical playbooks on scaling operations, clarifying positioning, and building brand authority.
         </p>
       </section>
 
@@ -87,7 +74,7 @@ export default function BlogPage() {
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Latest Post</span>
                   <Link 
                     to={`/blog/${latestPost.id}`}
-                    className="group border border-black/5 bg-white rounded-3xl overflow-hidden hover:shadow-xl hover:border-black/10 transition-all duration-300 flex flex-col cursor-pointer"
+                    className="group border border-black/5 bg-white rounded-3xl overflow-hidden hover:shadow-xl hover:border-black/10 transition-all duration-300 flex flex-col cursor-pointer no-underline"
                   >
                     {/* Cover Illustration */}
                     <div className={`h-64 sm:h-80 bg-linear-to-br ${latestPost.coverBg} p-8 flex flex-col justify-between relative`}>
@@ -127,7 +114,7 @@ export default function BlogPage() {
                       <Link 
                         key={pick.id} 
                         to={`/blog/${pick.id}`}
-                        className="group flex gap-4 p-4 border border-black/5 bg-white rounded-2xl hover:shadow-md hover:border-black/10 transition-all duration-300 cursor-pointer"
+                        className="group flex gap-4 p-4 border border-black/5 bg-white rounded-2xl hover:shadow-md hover:border-black/10 transition-all duration-300 cursor-pointer no-underline"
                       >
                         {/* Mini Cover */}
                         <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-linear-to-br ${pick.coverBg} p-3 flex flex-col justify-between shrink-0`}>
@@ -163,54 +150,67 @@ export default function BlogPage() {
           )}
 
           {/* FILTER & SEARCH BAR SECTION */}
-          <section className="max-w-7xl mx-auto px-6 mb-12 border-t border-black/5 pt-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <section className="max-w-7xl mx-auto px-6 mb-10 border-t border-black/5 pt-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               
-              {/* Category Selector Dropdown */}
-              <div className="relative">
-                <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Filters</span>
-                <button 
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 border border-black/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 bg-white hover:border-[#3e4095] transition-colors cursor-pointer"
-                >
-                  <span>{selectedCategory}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-black/10 rounded-xl shadow-lg z-30 py-1">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setIsDropdownOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-950"
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              {/* Category Pills Bar */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                      selectedCategory === cat
+                        ? 'bg-[#3e4095] text-white border-[#3e4095] shadow-xs'
+                        : 'bg-white text-slate-700 border-black/10 hover:border-black/20'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
 
               {/* Real-time Search input */}
-              <div className="relative w-full sm:max-w-xs">
-                <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Search articles</span>
-                <div className="relative">
-                  <input 
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search..."
-                    className="w-full bg-white border border-black/10 rounded-xl pl-9 pr-4 py-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
-                  />
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                </div>
+              <div className="relative w-full md:max-w-xs">
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search articles & guides..."
+                  className="w-full bg-white border border-black/10 rounded-xl pl-9 pr-8 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#3e4095]"
+                />
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-2.5 p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer border-none bg-transparent"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
             </div>
+
+            {/* Active filter summary */}
+            {isFiltering && (
+              <div className="flex items-center gap-2 mt-4 text-xs font-semibold text-slate-400">
+                <Tag className="w-3.5 h-3.5" />
+                <span>
+                  Showing {filteredGrid.length} article{filteredGrid.length !== 1 ? 's' : ''} for "{selectedCategory}"
+                  {searchQuery ? ` matching "${searchQuery}"` : ''}
+                </span>
+                <button
+                  onClick={() => {
+                    setSelectedCategory('All Topics');
+                    setSearchQuery('');
+                  }}
+                  className="text-[#3e4095] hover:underline font-bold ml-2 cursor-pointer border-none bg-transparent"
+                >
+                  Reset
+                </button>
+              </div>
+            )}
           </section>
 
           {/* ARTICLES GRID SECTION */}
@@ -220,9 +220,9 @@ export default function BlogPage() {
                 <Link 
                   key={post.id}
                   to={`/blog/${post.id}`}
-                  className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
+                  className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer no-underline"
                 >
-                  {/* Ebook/Cover preview */}
+                  {/* Cover preview */}
                   <div className={`h-40 bg-linear-to-br ${post.coverBg} p-5 flex flex-col justify-between relative`}>
                     <span className="self-end bg-white/10 backdrop-blur-md border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
                       {post.category}

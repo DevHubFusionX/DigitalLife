@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { CONTACT_EMAIL } from '../lib/whatsapp';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function PrivacyPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  usePageSEO({
+    title: 'Privacy Policy | Digitalife Ehub',
+    description: 'Privacy Policy and data protection practices for Digitalife Ehub.',
+  });
 
   return (
     <div className="bg-[#fffdf5] text-slate-900 pt-32 pb-24 min-h-screen">

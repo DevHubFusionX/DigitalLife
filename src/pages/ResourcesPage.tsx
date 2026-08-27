@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronDown, ArrowRight, BookOpen, Download, Play, Youtube } from 'lucide-react';
+import { Search, ChevronDown, ArrowRight, BookOpen, Download, Play, Youtube, X, Tag } from 'lucide-react';
 import AuroraHero from '../components/ui/aurora-hero';
 import { useResources } from '../hooks/useResources';
 import { usePlaybooks } from '../hooks/usePlaybooks';
 import { useVideos } from '../hooks/useVideos';
 import { useMetadata } from '../hooks/useMetadata';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function ResourcesPage() {
   const { resources } = useResources();
@@ -20,45 +21,46 @@ export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All Topics');
   const [selectedFormat, setSelectedFormat] = useState('All Formats');
+  const [selectedPriceType, setSelectedPriceType] = useState<'all' | 'free' | 'paid'>('all');
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = 'Resource Library | Free SOP Downloads & MSME Growth Playbooks | Digitalife Ehub';
-
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute(
-      'content',
-      'Access our growing collection of guides, templates, toolkits, frameworks, training materials, and practical insights designed to help you grow with structure.'
-    );
-
-    let metaKeywords = document.querySelector('meta[name="keywords"]');
-    if (!metaKeywords) {
-      metaKeywords = document.createElement('meta');
-      metaKeywords.setAttribute('name', 'keywords');
-      document.head.appendChild(metaKeywords);
-    }
-    metaKeywords.setAttribute(
-      'content',
-      'free SOP template word download, small business operations manual template pdf, business workflow design template, standard operating procedures checklist download, small business organizational structure chart, editable company policy template, daily operations report sheet excel, employee onboarding checklist template, growth roadmap worksheet for founders, small business dashboard template download, business-formalization-tools, free-SOP-downloads, msme-growth-frameworks, small-business-playbooks, operational-efficiency-templates, skill-monetization-guides, structure-over-hustle, brand-positioning-resources, business-clarity-worksheets'
-    );
-  }, []);
+  usePageSEO({
+    title: 'Resource Library | Free SOP Downloads & MSME Growth Playbooks | Digitalife Ehub',
+    description:
+      'Access our growing collection of guides, templates, toolkits, frameworks, training materials, and practical insights designed to help you grow with structure.',
+    keywords:
+      'free SOP template word download, small business operations manual template pdf, business workflow design template, standard operating procedures checklist download, small business organizational structure chart, editable company policy template, daily operations report sheet excel, employee onboarding checklist template, growth roadmap worksheet for founders, small business dashboard template download, business-formalization-tools, free-SOP-downloads, msme-growth-frameworks, small-business-playbooks, operational-efficiency-templates, skill-monetization-guides, structure-over-hustle, brand-positioning-resources, business-clarity-worksheets',
+  });
 
   // Filtering logic for Browse All
   const filteredResources = resources.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.category || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTopic = selectedTopic === 'All Topics' || (item.category || '').toLowerCase() === selectedTopic.toLowerCase();
     const matchesFormat = selectedFormat === 'All Formats' || (item.format || '').toLowerCase() === selectedFormat.toLowerCase();
-    return matchesSearch && matchesTopic && matchesFormat;
+    const matchesPrice =
+      selectedPriceType === 'all'
+        ? true
+        : selectedPriceType === 'free'
+        ? item.isFree
+        : !item.isFree;
+
+    return matchesSearch && matchesTopic && matchesFormat && matchesPrice;
   });
 
-  // Auto-select first category tab when categories load was removed since default tab is 'All'
+  const hasActiveFilters =
+    searchQuery.trim() !== '' ||
+    selectedTopic !== 'All Topics' ||
+    selectedFormat !== 'All Formats' ||
+    selectedPriceType !== 'all';
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedTopic('All Topics');
+    setSelectedFormat('All Formats');
+    setSelectedPriceType('all');
+  };
 
   return (
     <div className="bg-[#fffdf5] text-slate-900 pt-20">
@@ -71,7 +73,7 @@ export default function ResourcesPage() {
               Digitalife Resource Library
             </h1>
             <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl font-semibold mb-8">
-              Access our growing collection of guides, templates, toolkits, frameworks, training materials, business resources, videos, and practical insights designed to help you grow with structure, increase visibility and Revenue
+              Access our growing collection of guides, templates, toolkits, frameworks, training materials, business resources, videos, and practical insights designed to help you grow with structure, increase visibility, and scale revenue.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
@@ -80,7 +82,7 @@ export default function ResourcesPage() {
                 }}
                 className="bg-[#f97316] hover:bg-[#ea580c] text-white font-bold px-8 py-4 rounded-full text-xs transition-all shadow-lg flex items-center justify-center gap-2 border-none cursor-pointer"
               >
-                Explore All Resources
+                Explore All Resources ({resources.length})
               </button>
               <Link
                 to="/community"
@@ -114,7 +116,7 @@ export default function ResourcesPage() {
           <div className="flex gap-8 whitespace-nowrap">
             <button
               onClick={() => setSelectedFeaturedTab('All')}
-              className={`py-3.5 text-xs font-black uppercase tracking-wider relative transition-colors duration-250 cursor-pointer ${
+              className={`py-3.5 text-xs font-black uppercase tracking-wider relative transition-colors duration-250 cursor-pointer border-none bg-transparent ${
                 selectedFeaturedTab === 'All' ? 'text-slate-950' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -127,7 +129,7 @@ export default function ResourcesPage() {
               <button
                 key={tab}
                 onClick={() => setSelectedFeaturedTab(tab)}
-                className={`py-3.5 text-xs font-black uppercase tracking-wider relative transition-colors duration-250 cursor-pointer ${
+                className={`py-3.5 text-xs font-black uppercase tracking-wider relative transition-colors duration-250 cursor-pointer border-none bg-transparent ${
                   selectedFeaturedTab === tab ? 'text-slate-950' : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
@@ -148,7 +150,7 @@ export default function ResourcesPage() {
               <Link
                 key={item.id}
                 to={`/resources/${item.id}`}
-                className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
+                className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer no-underline"
               >
                 {/* Cover: image or gradient */}
                 <div className={`h-48 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-6 flex flex-col justify-between`}>
@@ -161,7 +163,7 @@ export default function ResourcesPage() {
                     </span>
                     <div>
                       <span className="text-[10px] font-black text-[#ffd148] tracking-widest uppercase block mb-1">DIGITALIFE</span>
-                      <h3 className="text-white text-base font-black tracking-tight leading-snug">{item.coverTitle}</h3>
+                      <h3 className="text-white text-base font-black tracking-tight leading-snug">{item.coverTitle || item.title}</h3>
                     </div>
                   </div>
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -182,7 +184,7 @@ export default function ResourcesPage() {
                     <h4 className="text-slate-950 text-base font-bold tracking-tight mb-2 group-hover:text-[#3e4095] transition-colors">
                       {item.title}
                     </h4>
-                    <p className="text-slate-500 text-xs font-semibold leading-relaxed">{item.description}</p>
+                    <p className="text-slate-500 text-xs font-semibold leading-relaxed line-clamp-2">{item.description}</p>
                   </div>
                   <span className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-950 mt-6 group-hover:text-[#3e4095] transition-colors self-start">
                     {item.isFree ? 'Get Resource' : `Buy — $${item.price?.toFixed(2)}`} <Download className="w-3.5 h-3.5" />
@@ -226,7 +228,7 @@ export default function ResourcesPage() {
                   </div>
                   <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6">{p.description}</p>
                 </div>
-                <Link to={p.linkedResourceId ? `/resources/${p.linkedResourceId}` : '/resources'} className="flex items-center justify-between text-xs font-bold text-slate-950 hover:text-[#3e4095] border-t border-black/5 pt-4 mt-2 transition-colors">
+                <Link to={p.linkedResourceId ? `/resources/${p.linkedResourceId}` : '/resources'} className="flex items-center justify-between text-xs font-bold text-slate-950 hover:text-[#3e4095] border-t border-black/5 pt-4 mt-2 transition-colors no-underline">
                   <span>{p.linkedResourceLabel}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -248,8 +250,38 @@ export default function ResourcesPage() {
           <p className="text-slate-500 text-sm font-bold">Explore Free Tools, Templates, and Ebooks</p>
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+        {/* Pricing Quick Filter Tabs */}
+        <div className="flex justify-center mb-6">
+          <div className="flex bg-slate-100 p-1 rounded-2xl border border-black/5">
+            <button
+              onClick={() => setSelectedPriceType('all')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
+                selectedPriceType === 'all' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-500 bg-transparent'
+              }`}
+            >
+              All Types
+            </button>
+            <button
+              onClick={() => setSelectedPriceType('free')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
+                selectedPriceType === 'free' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 bg-transparent'
+              }`}
+            >
+              Free Downloads
+            </button>
+            <button
+              onClick={() => setSelectedPriceType('paid')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
+                selectedPriceType === 'paid' ? 'bg-white text-[#3e4095] shadow-xs' : 'text-slate-500 bg-transparent'
+              }`}
+            >
+              Premium Resources
+            </button>
+          </div>
+        </div>
+
+        {/* Filters Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4">
           <div className="relative">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">Topic</label>
             <select
@@ -287,7 +319,7 @@ export default function ResourcesPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
+                placeholder="Search templates, SOPs, frameworks..."
                 className="w-full bg-[#fffdf5] border border-black/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#3e4095]"
               />
               <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -295,8 +327,47 @@ export default function ResourcesPage() {
           </div>
         </div>
 
+        {/* Active Filter Tags */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <Tag className="w-3 h-3" /> Active Filters:
+            </span>
+            {selectedTopic !== 'All Topics' && (
+              <span className="bg-slate-200/70 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                Topic: {selectedTopic}
+                <button onClick={() => setSelectedTopic('All Topics')} className="border-none bg-transparent cursor-pointer p-0"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {selectedFormat !== 'All Formats' && (
+              <span className="bg-slate-200/70 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                Format: {selectedFormat}
+                <button onClick={() => setSelectedFormat('All Formats')} className="border-none bg-transparent cursor-pointer p-0"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {selectedPriceType !== 'all' && (
+              <span className="bg-slate-200/70 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                Pricing: {selectedPriceType === 'free' ? 'Free Only' : 'Premium Only'}
+                <button onClick={() => setSelectedPriceType('all')} className="border-none bg-transparent cursor-pointer p-0"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {searchQuery && (
+              <span className="bg-slate-200/70 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                Query: "{searchQuery}"
+                <button onClick={() => setSearchQuery('')} className="border-none bg-transparent cursor-pointer p-0"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            <button
+              onClick={handleResetFilters}
+              className="text-[10px] font-black uppercase text-[#3e4095] hover:underline cursor-pointer border-none bg-transparent ml-2"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-6 text-xs text-slate-400 font-bold border-b border-black/5 pb-4">
-          <span>Showing 1 - {filteredResources.length} of {filteredResources.length}</span>
+          <span>Showing {filteredResources.length} of {resources.length} resources</span>
         </div>
 
         {/* Resource Grid */}
@@ -305,7 +376,7 @@ export default function ResourcesPage() {
             <Link
               key={item.id}
               to={`/resources/${item.id}`}
-              className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer"
+              className="group border border-black/5 bg-white rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-black/10 transition-all duration-300 cursor-pointer no-underline"
             >
               <div className={`h-40 relative overflow-hidden ${!item.coverImage ? `bg-linear-to-br ${item.coverBg}` : ''} p-5 flex flex-col justify-between`}>
                 {item.coverImage && (
@@ -317,7 +388,7 @@ export default function ResourcesPage() {
                   </span>
                   <div>
                     <span className="text-[9px] font-black text-[#ffd148] tracking-widest uppercase block mb-0.5">DIGITALIFE</span>
-                    <h3 className="text-white text-sm font-black tracking-tight leading-snug">{item.coverTitle}</h3>
+                    <h3 className="text-white text-sm font-black tracking-tight leading-snug">{item.coverTitle || item.title}</h3>
                   </div>
                 </div>
               </div>
@@ -332,7 +403,7 @@ export default function ResourcesPage() {
                     )}
                   </div>
                   <h4 className="text-slate-950 text-sm font-bold tracking-tight mb-1 group-hover:text-[#3e4095] transition-colors">{item.title}</h4>
-                  <p className="text-slate-500 text-[11px] font-semibold leading-relaxed">{item.description}</p>
+                  <p className="text-slate-500 text-[11px] font-semibold leading-relaxed line-clamp-2">{item.description}</p>
                 </div>
                 <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-950 mt-4 group-hover:text-[#3e4095] transition-colors self-start">
                   {item.isFree ? 'Download' : `Buy — $${item.price?.toFixed(2)}`} <Download className="w-3 h-3" />
@@ -341,8 +412,14 @@ export default function ResourcesPage() {
             </Link>
           ))}
           {filteredResources.length === 0 && (
-            <div className="col-span-full py-16 text-center text-slate-400 font-bold">
-              No resources found matching the criteria.
+            <div className="col-span-full py-16 text-center">
+              <p className="text-slate-500 font-bold text-sm mb-3">No resources found matching your filters.</p>
+              <button
+                onClick={handleResetFilters}
+                className="bg-[#3e4095] text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer border-none"
+              >
+                Reset All Filters
+              </button>
             </div>
           )}
         </div>
@@ -370,7 +447,7 @@ export default function ResourcesPage() {
                   href={video.youtubeUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="group bg-slate-900 border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 hover:shadow-2xl hover:shadow-black/50 transition-all duration-300 cursor-pointer block"
+                  className="group bg-slate-900 border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 hover:shadow-2xl hover:shadow-black/50 transition-all duration-300 cursor-pointer block no-underline"
                 >
                   {/* Thumbnail */}
                   <div className="relative h-44 overflow-hidden">
@@ -395,7 +472,7 @@ export default function ResourcesPage() {
                     <h3 className="text-white text-sm font-bold tracking-tight group-hover:text-[#ffd148] transition-colors mb-2">
                       {video.title}
                     </h3>
-                    <p className="text-slate-400 text-[11px] font-semibold leading-relaxed">
+                    <p className="text-slate-400 text-[11px] font-semibold leading-relaxed line-clamp-2">
                       {video.description}
                     </p>
                     <div className="flex items-center gap-1.5 mt-4 text-[10px] font-black uppercase text-slate-400 group-hover:text-[#ffd148] transition-colors">
