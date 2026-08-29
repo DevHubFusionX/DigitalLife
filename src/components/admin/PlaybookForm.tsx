@@ -5,6 +5,9 @@ import { addPlaybook, updatePlaybook } from '../../lib/firestore/playbooks';
 import { useResources } from '../../hooks/useResources';
 import { useToast } from '../../hooks/useToast';
 
+import PlaybookAvatarPreview from './playbooks/form/PlaybookAvatarPreview';
+import PlaybookFields from './playbooks/form/PlaybookFields';
+
 const EMPTY: Omit<Playbook, 'id' | 'createdAt' | 'updatedAt'> = {
   initials: '',
   name: '',
@@ -21,6 +24,16 @@ interface PlaybookFormProps {
   onClose: () => void;
 }
 
+/** Helper to generate initials from a full name */
+function generateInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+    .slice(0, 2);
+}
+
 export default function PlaybookForm({ editTarget, onClose }: PlaybookFormProps) {
   const { resources } = useResources();
   const { success, error: toastError } = useToast();
@@ -29,7 +42,6 @@ export default function PlaybookForm({ editTarget, onClose }: PlaybookFormProps)
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Escape key handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -47,12 +59,10 @@ export default function PlaybookForm({ editTarget, onClose }: PlaybookFormProps)
     }
   }, [editTarget]);
 
-  const set = <K extends keyof typeof EMPTY>(field: K) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+  const updateField = (field: string, val: unknown) => {
+    setForm((prev) => ({ ...prev, [field]: val }));
+  };
 
-  /** Auto-generate initials from name when initials field is empty or matching */
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     setForm((prev) => {
@@ -138,6 +148,7 @@ export default function PlaybookForm({ editTarget, onClose }: PlaybookFormProps)
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent"
           >
@@ -146,139 +157,36 @@ export default function PlaybookForm({ editTarget, onClose }: PlaybookFormProps)
         </div>
 
         {/* Body */}
-        <form id="playbook-form" onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-5 grow">
+        <form
+          id="playbook-form"
+          onSubmit={handleSubmit}
+          className="overflow-y-auto p-6 space-y-5 grow"
+        >
           {/* Live Expert Avatar Preview */}
-          <div className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#3e4095] to-[#2e3075] text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0 overflow-hidden">
-              {form.avatarUrl ? (
-                <img
-                  src={form.avatarUrl}
-                  alt={form.name || 'Avatar'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span>{form.initials || 'EX'}</span>
-              )}
-            </div>
-            <div className="grow truncate">
-              <h4 className="text-xs font-black text-slate-900 truncate">
-                {form.name || 'Expert Name Preview'}
-              </h4>
-              <p className="text-[10px] font-semibold text-slate-400 truncate">
-                {form.role || 'Operational Leadership'}
-              </p>
-            </div>
-          </div>
+          <PlaybookAvatarPreview
+            avatarUrl={form.avatarUrl}
+            name={form.name}
+            initials={form.initials}
+            role={form.role}
+          />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Name */}
-            <div className="sm:col-span-2">
-              <label className={labelCls}>Expert Name *</label>
-              <input
-                required
-                type="text"
-                value={form.name}
-                onChange={handleNameChange}
-                placeholder="e.g. Brandon Smithwick"
-                className={inputCls}
-              />
-            </div>
-
-            {/* Initials */}
-            <div>
-              <label className={labelCls}>Initials *</label>
-              <input
-                required
-                type="text"
-                maxLength={3}
-                value={form.initials}
-                onChange={set('initials')}
-                placeholder="BS"
-                className={inputCls}
-              />
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className={labelCls}>Role / Specialty *</label>
-              <input
-                required
-                type="text"
-                value={form.role}
-                onChange={set('role')}
-                placeholder="e.g. Head of Scaling & Systems"
-                className={inputCls}
-              />
-            </div>
-
-            {/* Display Order */}
-            <div>
-              <label className={labelCls}>Display Order *</label>
-              <input
-                required
-                type="number"
-                min="1"
-                value={form.order}
-                onChange={set('order')}
-                className={inputCls}
-              />
-            </div>
-
-            {/* Avatar URL */}
-            <div>
-              <label className={labelCls}>Avatar Image URL (optional)</label>
-              <input
-                type="url"
-                value={form.avatarUrl ?? ''}
-                onChange={set('avatarUrl')}
-                placeholder="https://..."
-                className={inputCls}
-              />
-            </div>
-
-            {/* Linked Resource Dropdown */}
-            <div className="sm:col-span-2">
-              <label className={labelCls}>Linked Digital Resource</label>
-              <select
-                value={form.linkedResourceId || ''}
-                onChange={handleResourceChange}
-                className={inputCls}
-              >
-                <option value="">— No linked resource —</option>
-                {resources.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.title} ({r.category})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* CTA Label */}
-            <div className="sm:col-span-2">
-              <label className={labelCls}>Action Link CTA Label *</label>
-              <input
-                required
-                type="text"
-                value={form.linkedResourceLabel}
-                onChange={set('linkedResourceLabel')}
-                placeholder="e.g. Download Growth Blueprint"
-                className={inputCls}
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className={labelCls}>Expert Bio &amp; Summary *</label>
-            <textarea
-              required
-              rows={4}
-              value={form.description}
-              onChange={set('description')}
-              placeholder="Short biographical summary highlighting their operational achievements and methodology…"
-              className={`${inputCls} resize-none`}
-            />
-          </div>
+          {/* Form Fields */}
+          <PlaybookFields
+            name={form.name}
+            initials={form.initials}
+            role={form.role}
+            order={form.order}
+            avatarUrl={form.avatarUrl}
+            linkedResourceId={form.linkedResourceId}
+            linkedResourceLabel={form.linkedResourceLabel}
+            description={form.description}
+            resources={resources}
+            onNameChange={handleNameChange}
+            onFieldChange={updateField}
+            onResourceChange={handleResourceChange}
+            inputCls={inputCls}
+            labelCls={labelCls}
+          />
 
           {error && (
             <p className="text-xs font-bold text-rose-600 bg-rose-50 p-3.5 rounded-2xl border border-rose-100">
@@ -309,14 +217,4 @@ export default function PlaybookForm({ editTarget, onClose }: PlaybookFormProps)
       </div>
     </div>
   );
-}
-
-/** Helper to generate initials from a full name */
-function generateInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
-    .slice(0, 2);
 }
