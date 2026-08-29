@@ -1,0 +1,131 @@
+/**
+ * Utility to reliably trigger and handle resource downloads across all browsers,
+ * handling Google Drive URLs, Cloudinary attachments, cross-origin restrictions,
+ * and fallback starter packages.
+ */
+
+export function normalizeResourceDownloadUrl(url?: string | null): string {
+  if (!url) return '';
+  let clean = url.trim();
+  if (clean.toLowerCase().startsWith('wa.me/')) {
+    return `https://${clean}`;
+  }
+  if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+    return `https://${clean}`;
+  }
+
+  // Convert Google Drive view URLs to direct export URLs
+  const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+  }
+
+  // For Cloudinary uploads, insert fl_attachment to force Content-Disposition: attachment header
+  if (clean.includes('cloudinary.com') && !clean.includes('fl_attachment')) {
+    clean = clean.replace('/upload/', '/upload/fl_attachment/');
+  }
+
+  return clean;
+}
+
+export interface DownloadableResource {
+  id: string;
+  title: string;
+  format?: string | null;
+  category?: string | null;
+  deliverables?: string[] | null;
+  outcomes?: string[] | null;
+  description?: string | null;
+  downloadUrl?: string | null;
+}
+
+export async function downloadResourceDocument(
+  url: string | null | undefined,
+  resource: DownloadableResource
+): Promise<void> {
+  const cleanTitle = resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const filename = `${cleanTitle}_digitalife_resource`;
+
+  const targetUrl = normalizeResourceDownloadUrl(url);
+
+  // If a valid external, Google Drive, or Cloudinary URL exists:
+  if (targetUrl) {
+    // If it's a WhatsApp link, open in new tab
+    if (targetUrl.includes('wa.me/')) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    try {
+      // Attempt blob fetch to guarantee local file save on desktop & mobile
+      const res = await fetch(targetUrl, { mode: 'cors' });
+      if (res.ok) {
+        const blob = await res.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
+        return;
+      }
+    } catch {
+      // Fallback if CORS prevents direct blob fetch
+    }
+
+    // Direct browser navigation / anchor trigger
+    const link = document.createElement('a');
+    link.href = targetUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+
+  // Fallback: If no custom file was uploaded yet, generate a branded Digitalife Document Package
+  const content = `# DIGITALIFE EHUB — RESOURCE PACKAGE
+Title: ${resource.title}
+Category: ${resource.category || 'General'}
+Format: ${resource.format || 'Guide'}
+Date: ${new Date().toLocaleDateString()}
+
+==================================================
+DESCRIPTION
+==================================================
+${resource.description || 'Comprehensive standard operating procedures and growth frameworks structured for MSMEs.'}
+
+==================================================
+DELIVERABLES INCLUDED
+==================================================
+${(resource.deliverables || ['Framework Overview', 'Standard Operating Procedures', 'Execution Worksheet']).map((d, i) => `${i + 1}. ${d}`).join('\n')}
+
+==================================================
+TARGET OUTCOMES
+==================================================
+${(resource.outcomes || ['Optimize team efficiency', 'Standardize operational workflows', 'Accelerate business scalability']).map((o) => `• ${o}`).join('\n')}
+
+==================================================
+SUPPORT & ACCESS
+==================================================
+Website: https://digitalifehub.com
+Email: hello@digitalifehub.com
+WhatsApp Community: https://wa.me/234908331989
+
+© ${new Date().getFullYear()} Digitalife Ehub. All rights reserved.
+`;
+
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = `${filename}.md`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
+}

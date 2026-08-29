@@ -9,17 +9,7 @@ import { addLead } from '../lib/firestore/leads';
 import { payWithPaystack } from '../lib/paystack';
 import { useToast } from '../hooks/useToast';
 
-function triggerDirectDownload(url: string | null | undefined, title: string) {
-  const link = document.createElement('a');
-  link.href = url || '/logo.svg';
-  link.download = `${title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
+import { downloadResourceDocument } from '../lib/download';
 import { sendResourceDeliveryEmail } from '../lib/email';
 
 
@@ -45,7 +35,12 @@ export default function ResourceDetailPage() {
     e.preventDefault();
     if (!email || !name || !resource) return;
     setIsLoading(true);
+
     try {
+      // 1. Trigger the direct document download to the user's browser immediately
+      await downloadResourceDocument(resource.downloadUrl, resource);
+
+      // 2. Save lead record in Firestore CRM
       await addLead({
         name: name.trim(),
         email: email.trim(),
@@ -53,20 +48,21 @@ export default function ResourceDetailPage() {
         resourceTitle: resource.title,
       });
 
-          await sendResourceDeliveryEmail({
-            name: name.trim(),
-            email: email.trim(),
-            resourceId: resource.id,
-            resourceTitle: resource.title,
-            downloadUrl: resource.downloadUrl,
-          });
-      success(`Resource unlocked! We sent a copy to ${email}.`, 'Download Ready');
+      // 3. Dispatch document link copy directly to the user's email via Resend
+      await sendResourceDeliveryEmail({
+        name: name.trim(),
+        email: email.trim(),
+        resourceId: resource.id,
+        resourceTitle: resource.title,
+        downloadUrl: resource.downloadUrl,
+      });
+
+      success(`Resource unlocked! Downloading now & link sent to ${email}.`, 'Download Ready');
     } catch (err) {
-      console.warn('Failed to save lead to Firestore:', err);
+      console.warn('Unlock process notification:', err);
     } finally {
       setIsLoading(false);
       setFormSubmitted(true);
-      triggerDirectDownload(resource.downloadUrl, resource.title);
     }
   };
 
@@ -119,7 +115,7 @@ export default function ResourceDetailPage() {
           setFormSubmitted(true);
           setIsLoading(false);
           success('Payment approved! Download starting and email copy dispatched.', 'Payment Successful');
-          triggerDirectDownload(resource.downloadUrl, resource.title);
+          downloadResourceDocument(resource.downloadUrl, resource);
         },
         onCancel: () => {
           setIsLoading(false);
@@ -453,19 +449,25 @@ export default function ResourceDetailPage() {
                         {resource.isFree ? 'Resource Unlocked Successfully!' : 'Payment Completed Successfully!'}
                       </p>
                       <p className="text-xs text-slate-300 font-semibold mt-1">
-                        A permanent download link has been dispatched to <strong>{email}</strong> via Resend.
+                        A download copy has been dispatched to <strong>{email}</strong>.
                       </p>
                     </div>
 
-                    <a
-                      href={resource.downloadUrl || '/logo.svg'}
-                      download={`${resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_resource`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md no-underline"
+                    <button
+                      type="button"
+                      onClick={() => downloadResourceDocument(resource.downloadUrl, resource)}
+                      className="w-full bg-[#ffd148] hover:bg-[#ffe066] text-slate-950 font-black py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border-none shadow-md cursor-pointer"
                     >
-                      <FileText className="w-4 h-4" /> Download File Again
-                    </a>
+                      <Download className="w-4 h-4" /> Download / Access File Now
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => downloadResourceDocument(resource.downloadUrl, resource)}
+                      className="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-white/10 cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5" /> Re-trigger Automatic Download
+                    </button>
 
                     <button
                       type="button"
