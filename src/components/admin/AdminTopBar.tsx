@@ -44,7 +44,7 @@ export default function AdminTopBar({ onMenuClick }: AdminTopBarProps) {
         )}
 
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff5f38] to-[#ea580c] flex items-center justify-center text-white font-black text-xs shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ffd148] to-[#e6bd3e] flex items-center justify-center text-slate-950 font-black text-xs shadow-xs">
             D
           </div>
           <span className="text-sm font-black text-slate-900 tracking-tight hidden sm:inline">
@@ -96,7 +96,7 @@ export default function AdminTopBar({ onMenuClick }: AdminTopBarProps) {
             <Bell className="w-4 h-4" />
           </button>
           {newLeadsCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#ff5f38] ring-2 ring-white animate-pulse" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#ffd148] ring-2 ring-white animate-pulse" />
           )}
         </div>
 
@@ -111,7 +111,7 @@ export default function AdminTopBar({ onMenuClick }: AdminTopBarProps) {
 
         {/* User Profile Chip */}
         <div className="flex items-center gap-2.5 pl-2 pr-3 py-1 bg-white border border-slate-200/80 rounded-full shadow-xs cursor-pointer hover:border-slate-300 transition-colors">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-[#ff5f38] flex items-center justify-center text-white text-[11px] font-black shrink-0">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#ffd148] to-[#e6bd3e] flex items-center justify-center text-slate-950 text-[11px] font-black shrink-0">
             {adminName[0]?.toUpperCase()}
           </div>
           <div className="text-left hidden lg:block leading-none">

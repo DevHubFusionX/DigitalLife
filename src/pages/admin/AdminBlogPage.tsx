@@ -120,7 +120,7 @@ export default function AdminBlogPage() {
       {/* 4. Main Articles List */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-[#ff5f38] animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#ffd148] animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-[28px] p-12 text-center border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
@@ -139,7 +139,7 @@ export default function AdminBlogPage() {
                 setSearch('');
                 setSelectedCategory('');
               }}
-              className="text-xs font-bold text-[#ff5f38] hover:underline bg-transparent border-none cursor-pointer"
+              className="text-xs font-bold text-[#b49200] hover:text-[#946f00] hover:underline bg-transparent border-none cursor-pointer"
             >
               Clear All Filters
             </button>

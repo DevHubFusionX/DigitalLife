@@ -17,7 +17,7 @@ export default function GatewayStatusCards({
           <CreditCard className="w-4 h-4 text-slate-700" />
           <h3 className="text-xs font-black text-slate-900">Live Infrastructure</h3>
         </div>
-        <Link to="/admin/settings" className="text-xs font-bold text-[#ff5f38] hover:underline no-underline">
+        <Link to="/admin/settings" className="text-xs font-bold text-[#b49200] hover:text-[#946f00] hover:underline no-underline">
           Settings →
         </Link>
       </div>
@@ -51,26 +51,26 @@ export default function GatewayStatusCards({
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-sm pointer-events-none" />
         </div>
 
-        {/* Card 2: Resend Email Engine Card */}
-        <div className="rounded-2xl bg-gradient-to-br from-[#ff5f38] to-[#ff7a54] p-4 text-white flex flex-col justify-between h-36 relative overflow-hidden shadow-md shadow-orange-500/15">
+        {/* Card 2: Resend Email Engine Card (Brand Gold) */}
+        <div className="rounded-2xl bg-gradient-to-br from-[#ffd148] via-[#f5c738] to-[#e6bd3e] p-4 text-slate-950 flex flex-col justify-between h-36 relative overflow-hidden shadow-md shadow-[#ffd148]/20">
           <div className="flex justify-between items-center z-10">
-            <Sparkles className="w-3.5 h-3.5 text-white/80" />
-            <span className="text-[9px] font-extrabold text-[#ff5f38] bg-white px-2 py-0.5 rounded-full shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+            <span className="text-[9px] font-black text-slate-950 bg-white/90 px-2 py-0.5 rounded-full shadow-xs">
               Active
             </span>
           </div>
 
           <div className="z-10 my-auto">
-            <p className="text-[9px] text-white/80 font-bold uppercase tracking-wider">Resend Mailer</p>
-            <p className="text-xs font-black text-white">Transactional API</p>
+            <p className="text-[9px] text-slate-900/80 font-black uppercase tracking-wider">Resend Mailer</p>
+            <p className="text-xs font-black text-slate-950">Transactional API</p>
           </div>
 
-          <div className="z-10 text-[9px] font-mono text-white/80">
-            <span className="block text-[8px] text-white/60">DELIVERIES</span>
-            <span className="text-white font-bold text-[10px]">{totalDeliveriesCount} Dispatched</span>
+          <div className="z-10 text-[9px] font-mono text-slate-900/90">
+            <span className="block text-[8px] text-slate-900/70 font-bold">DELIVERIES</span>
+            <span className="text-slate-950 font-black text-[10px]">{totalDeliveriesCount} Dispatched</span>
           </div>
 
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-black/10 rounded-full blur-sm pointer-events-none" />
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-slate-950/5 rounded-full blur-sm pointer-events-none" />
         </div>
       </div>
     </div>

@@ -121,9 +121,9 @@ export default function ResourceFilterBar({
 
         <button
           onClick={() => onPriceFilterChange('paid')}
-          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border-none ${
+          className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all whitespace-nowrap cursor-pointer border-none ${
             priceFilter === 'paid'
-              ? 'bg-gradient-to-r from-[#ff5f38] to-[#ea580c] text-white shadow-xs'
+              ? 'bg-gradient-to-r from-[#ffd148] to-[#e6bd3e] text-slate-950 shadow-xs'
               : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
           }`}
         >

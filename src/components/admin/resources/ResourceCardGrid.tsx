@@ -64,7 +64,7 @@ export default function ResourceCardGrid({ resources, onEdit, onDelete }: Resour
               {/* Price Pill Top Left */}
               <div className="absolute top-3 left-3 z-10">
                 {isPaid ? (
-                  <span className="bg-gradient-to-r from-[#ff5f38] to-[#ea580c] text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
+                  <span className="bg-gradient-to-r from-[#ffd148] to-[#e6bd3e] text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
                     ${Number(resource.price).toFixed(2)}
                   </span>
                 ) : (

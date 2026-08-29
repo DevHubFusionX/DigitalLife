@@ -31,7 +31,7 @@ export default function AdminSidebar({ mobileOpen = false, onMobileClose }: Admi
       {/* Top: Brand Icon & Theme Indicator */}
       <div className="flex flex-col items-center gap-4 w-full">
         {/* Brand Logo Icon */}
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff5f38] to-[#ea580c] flex items-center justify-center text-white shadow-md shadow-orange-500/20">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ffd148] to-[#e6bd3e] flex items-center justify-center text-slate-950 shadow-md shadow-[#ffd148]/25">
           <Shield className="w-5 h-5" />
         </div>
 

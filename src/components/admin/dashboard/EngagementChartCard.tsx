@@ -32,7 +32,7 @@ export default function EngagementChartCard({
           {/* Legend */}
           <div className="flex items-center gap-3 text-[10px] font-bold text-slate-600">
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-xs bg-[#ff5f38]" /> Paid Sales
+              <span className="w-2.5 h-2.5 rounded-xs bg-[#ffd148]" /> Paid Sales
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-xs bg-slate-950" /> Free Unlocks
@@ -49,12 +49,12 @@ export default function EngagementChartCard({
           {chartData.map((d) => (
             <div key={d.label} className="flex flex-col items-center gap-2 grow min-w-[24px] group cursor-pointer">
               <div className="flex flex-col justify-end items-center gap-1 h-36 w-full max-w-[28px]">
-                {/* Orange Top Bar (Paid Purchases) */}
+                {/* Gold Top Bar (Paid Purchases) */}
                 <div
-                  className="w-full rounded-md bg-[#ff5f38] transition-all group-hover:scale-105"
+                  className="w-full rounded-md bg-[#ffd148] transition-all group-hover:scale-105"
                   style={{
                     height: d.paidHeight,
-                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.2) 3px, rgba(255,255,255,0.2) 6px)',
+                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 6px)',
                   }}
                   title={`${d.label}: ${d.paidCount} Paid Sales`}
                 />

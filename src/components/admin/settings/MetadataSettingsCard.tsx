@@ -147,7 +147,7 @@ export default function MetadataSettingsCard({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-[#ff5f38]">
+              <div className="w-8 h-8 rounded-xl bg-[#ffd148]/15 flex items-center justify-center text-[#b49200]">
                 <Layers className="w-4 h-4" />
               </div>
               <div>

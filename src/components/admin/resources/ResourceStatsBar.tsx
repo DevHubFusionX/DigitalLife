@@ -17,8 +17,8 @@ export default function ResourceStatsBar({ resources }: ResourceStatsBarProps) {
       <div className="bg-white rounded-[24px] p-5 border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[130px]">
         <div className="flex justify-between items-start">
           <span className="text-xs font-bold text-slate-500">Total Catalog</span>
-          <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-            <Layers className="w-3.5 h-3.5 text-[#ff5f38]" />
+          <div className="w-7 h-7 rounded-xl bg-[#ffd148]/15 flex items-center justify-center text-[#b49200]">
+            <Layers className="w-3.5 h-3.5" />
           </div>
         </div>
         <div>
@@ -31,19 +31,19 @@ export default function ResourceStatsBar({ resources }: ResourceStatsBarProps) {
         </div>
       </div>
 
-      {/* 2. Premium Paid Assets (Featured Orange) */}
-      <div className="bg-gradient-to-br from-[#ff5f38] to-[#ff7347] text-white rounded-[24px] p-5 flex flex-col justify-between shadow-md shadow-orange-500/15 min-h-[130px]">
+      {/* 2. Premium Paid Assets (Featured Gold) */}
+      <div className="bg-gradient-to-br from-[#ffd148] via-[#f5c738] to-[#e6bd3e] text-slate-950 rounded-[24px] p-5 flex flex-col justify-between shadow-md shadow-[#ffd148]/20 min-h-[130px]">
         <div className="flex justify-between items-start">
-          <span className="text-xs font-bold text-white/90">Premium Inventory</span>
-          <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
-            <DollarSign className="w-4 h-4 text-white" />
+          <span className="text-xs font-black text-slate-900/90">Premium Inventory</span>
+          <div className="w-7 h-7 rounded-xl bg-slate-950/10 flex items-center justify-center">
+            <DollarSign className="w-4 h-4 text-slate-950" />
           </div>
         </div>
         <div>
-          <h3 className="text-2xl sm:text-3xl font-black text-white leading-none">
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-950 leading-none">
             {paidResources.length} Paid
           </h3>
-          <p className="text-[11px] font-bold text-white/80 mt-1">
+          <p className="text-[11px] font-bold text-slate-900/80 mt-1">
             ${totalCatalogValue.toFixed(2)} catalog value
           </p>
         </div>

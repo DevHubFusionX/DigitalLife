@@ -95,6 +95,15 @@ export default function BlogForm({ editTarget, onClose }: BlogFormProps) {
     }
   }, [title, slugManuallyEdited]);
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const totalWords = countWords(introduction, sections);
 
   const handleSectionChange = (idx: number, field: 'heading' | 'content', value: string) => {

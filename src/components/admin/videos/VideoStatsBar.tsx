@@ -51,8 +51,8 @@ export default function VideoStatsBar({ videos }: VideoStatsBarProps) {
       <div className="bg-white rounded-[24px] p-5 border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[130px]">
         <div className="flex justify-between items-start">
           <span className="text-xs font-bold text-slate-500">Topic Coverage</span>
-          <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-            <Layers className="w-3.5 h-3.5 text-[#ff5f38]" />
+          <div className="w-7 h-7 rounded-xl bg-[#ffd148]/15 flex items-center justify-center text-[#b49200]">
+            <Layers className="w-3.5 h-3.5" />
           </div>
         </div>
         <div>

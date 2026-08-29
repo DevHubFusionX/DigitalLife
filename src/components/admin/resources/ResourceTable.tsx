@@ -90,7 +90,7 @@ export default function ResourceTable({ resources, onEdit, onDelete }: ResourceT
                 <td className="py-3 px-3">
                   {isPaid ? (
                     <div>
-                      <span className="bg-orange-50 text-[#ff5f38] text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                      <span className="bg-[#ffd148]/20 text-[#b49200] text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
                         ${Number(resource.price).toFixed(2)}
                       </span>
                       <p className="text-[9px] font-semibold text-slate-400 mt-0.5">
