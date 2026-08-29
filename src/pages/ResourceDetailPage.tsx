@@ -20,23 +20,8 @@ function triggerDirectDownload(url: string | null | undefined, title: string) {
   document.body.removeChild(link);
 }
 
-async function sendResourceEmail(data: {
-  name: string;
-  email: string;
-  resourceId: string;
-  resourceTitle: string;
-  downloadUrl?: string | null;
-}) {
-  try {
-    await fetch('/api/send-resource', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-  } catch (err) {
-    console.warn('Failed to send email via API:', err);
-  }
-}
+import { sendResourceDeliveryEmail } from '../lib/email';
+
 
 export default function ResourceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,13 +53,13 @@ export default function ResourceDetailPage() {
         resourceTitle: resource.title,
       });
 
-      await sendResourceEmail({
-        name: name.trim(),
-        email: email.trim(),
-        resourceId: resource.id,
-        resourceTitle: resource.title,
-        downloadUrl: resource.downloadUrl,
-      });
+          await sendResourceDeliveryEmail({
+            name: name.trim(),
+            email: email.trim(),
+            resourceId: resource.id,
+            resourceTitle: resource.title,
+            downloadUrl: resource.downloadUrl,
+          });
       success(`Resource unlocked! We sent a copy to ${email}.`, 'Download Ready');
     } catch (err) {
       console.warn('Failed to save lead to Firestore:', err);
@@ -123,7 +108,7 @@ export default function ResourceDetailPage() {
             console.warn('Failed to save payment lead to Firestore:', err);
           }
 
-          await sendResourceEmail({
+          await sendResourceDeliveryEmail({
             name: name.trim(),
             email: email.trim(),
             resourceId: resource.id,

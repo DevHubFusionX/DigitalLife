@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { User, FileText, Calendar, Copy, Check, Mail, MessageSquare, Inbox, ShieldCheck } from 'lucide-react';
+import { User, FileText, Calendar, Copy, Check, Mail, MessageSquare, Inbox, ShieldCheck, Send, Loader2 } from 'lucide-react';
 import type { Lead } from '../../../types/lead';
 import { useToast } from '../../../hooks/useToast';
+import { sendResourceDeliveryEmail } from '../../../lib/email';
+
+import { useResources } from '../../../hooks/useResources';
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -18,8 +21,10 @@ export default function LeadsTable({
   onToggleSelectLead,
   onToggleSelectAll,
 }: LeadsTableProps) {
-  const { success } = useToast();
+  const { resources } = useResources();
+  const { success, error: toastError } = useToast();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const handleCopy = (text: string, id: string, label = 'Copied') => {
     navigator.clipboard.writeText(text);
@@ -27,6 +32,37 @@ export default function LeadsTable({
     success(`${label} to clipboard.`);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  const handleResendResourceEmail = async (lead: Lead) => {
+    if (!lead.email || resendingId) return;
+    setResendingId(lead.id);
+
+    try {
+      const matchingResource = resources.find(
+        (r) => r.id === lead.resourceId || r.title.trim().toLowerCase() === lead.resourceTitle.trim().toLowerCase()
+      );
+      const downloadUrl = matchingResource?.downloadUrl || undefined;
+
+      const res = await sendResourceDeliveryEmail({
+        name: lead.name,
+        email: lead.email,
+        resourceId: lead.resourceId,
+        resourceTitle: lead.resourceTitle,
+        downloadUrl,
+      });
+
+      if (res.success) {
+        success(`Resource delivery email re-sent to ${lead.email} via Resend.`, 'Email Dispatched');
+      } else {
+        toastError(res.error || 'Failed to dispatch email');
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Error sending email');
+    } finally {
+      setResendingId(null);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -98,7 +134,20 @@ export default function LeadsTable({
               <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
                 <span>{new Date(lead.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    onClick={() => handleResendResourceEmail(lead)}
+                    disabled={resendingId === lead.id}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-bold hover:bg-amber-100 disabled:opacity-50 cursor-pointer"
+                    title="Resend Resource Download Email via Resend"
+                  >
+                    {resendingId === lead.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin text-amber-700" />
+                    ) : (
+                      <Send className="w-3 h-3 text-amber-700" />
+                    )}
+                    Resend Copy
+                  </button>
                   <a
                     href={`mailto:${lead.email}?subject=Regarding your Digitalife resource: ${encodeURIComponent(lead.resourceTitle)}`}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:text-[#3e4095]"
@@ -242,6 +291,18 @@ export default function LeadsTable({
                   {/* Direct Outreach Actions */}
                   <td className="py-4 px-3 text-right">
                     <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => handleResendResourceEmail(lead)}
+                        disabled={resendingId === lead.id}
+                        className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors disabled:opacity-50 cursor-pointer border-none"
+                        title="Resend Resource Download Email via Resend"
+                      >
+                        {resendingId === lead.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                        ) : (
+                          <Send className="w-3.5 h-3.5 text-amber-700" />
+                        )}
+                      </button>
                       <a
                         href={`mailto:${lead.email}?subject=Regarding your Digitalife resource: ${encodeURIComponent(lead.resourceTitle)}`}
                         className="p-2 rounded-xl bg-slate-100 hover:bg-[#3e4095]/10 text-slate-600 hover:text-[#3e4095] transition-colors"
