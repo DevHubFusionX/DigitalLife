@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit2, Trash2, ExternalLink, Copy, Check, Sparkles, Paperclip } from 'lucide-react';
+import { Edit2, Trash2, ExternalLink, Copy, Check, Paperclip } from 'lucide-react';
 import type { Resource } from '../../../types/resource';
 import { useToast } from '../../../hooks/useToast';
 

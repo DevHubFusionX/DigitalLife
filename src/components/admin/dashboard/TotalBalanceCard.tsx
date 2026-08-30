@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ArrowRightLeft, Plus } from 'lucide-react';
+import { ArrowRightLeft, Plus } from 'lucide-react';
 
 interface TotalBalanceCardProps {
   totalRevenueNGN: number;
