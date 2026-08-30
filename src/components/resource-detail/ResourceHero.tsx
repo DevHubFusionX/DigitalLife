@@ -52,7 +52,7 @@ export default function ResourceHero({
                 </span>
               ) : (
                 <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full">
-                  ${resource.price?.toFixed(2)} USD
+                  ₦{resource.price ? Number(resource.price).toLocaleString() : '0'}
                 </span>
               )}
             </div>

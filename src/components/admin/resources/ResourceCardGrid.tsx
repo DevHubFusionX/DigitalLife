@@ -26,7 +26,7 @@ export default function ResourceCardGrid({ resources, onEdit, onDelete }: Resour
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {resources.map((resource) => {
         const isPaid = !resource.isFree && Number(resource.price) > 0;
-        const ngnPrice = isPaid ? Math.round(Number(resource.price) * 1600) : 0;
+        const priceInNGN = isPaid ? Number(resource.price) : 0;
 
         return (
           <div
@@ -39,24 +39,18 @@ export default function ResourceCardGrid({ resources, onEdit, onDelete }: Resour
                 <img
                   src={resource.coverImage}
                   alt={resource.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
                 <div
                   className={`w-full h-full bg-gradient-to-br ${resource.coverBg || 'from-[#0f172a] to-[#1e293b]'} p-5 flex flex-col justify-between text-white relative`}
                 >
-                  <div className="flex justify-between items-center z-10">
-                    <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-xs">
-                      {resource.category || 'Framework'}
-                    </span>
-                    <Sparkles className="w-4 h-4 text-white/70" />
-                  </div>
-                  <div className="z-10">
-                    <p className="text-[10px] text-white/70 font-mono uppercase">{resource.format || 'PDF Guide'}</p>
-                    <h4 className="text-sm font-black text-white leading-snug line-clamp-2 mt-0.5">
-                      {resource.coverTitle || resource.title}
-                    </h4>
-                  </div>
+                  <span className="text-[10px] font-black tracking-widest text-[#ffd148] uppercase">
+                    DIGITALIFE
+                  </span>
+                  <p className="text-sm font-black tracking-tight leading-snug line-clamp-3">
+                    {resource.coverTitle || resource.title}
+                  </p>
                   <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-white/5 rounded-full blur-sm pointer-events-none" />
                 </div>
               )}
@@ -65,7 +59,7 @@ export default function ResourceCardGrid({ resources, onEdit, onDelete }: Resour
               <div className="absolute top-3 left-3 z-10">
                 {isPaid ? (
                   <span className="bg-gradient-to-r from-[#ffd148] to-[#e6bd3e] text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
-                    ${Number(resource.price).toFixed(2)}
+                    ₦{priceInNGN.toLocaleString('en-US')}
                   </span>
                 ) : (
                   <span className="bg-[#3e4095] text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
@@ -107,8 +101,8 @@ export default function ResourceCardGrid({ resources, onEdit, onDelete }: Resour
               {/* Price / Currency breakdown */}
               {isPaid && (
                 <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-[11px] font-bold">
-                  <span className="text-slate-500">Paystack NGN:</span>
-                  <span className="text-slate-900 font-extrabold">₦{ngnPrice.toLocaleString('en-US')}</span>
+                  <span className="text-slate-500">Paystack Price:</span>
+                  <span className="text-slate-900 font-extrabold">₦{priceInNGN.toLocaleString('en-US')}</span>
                 </div>
               )}
 

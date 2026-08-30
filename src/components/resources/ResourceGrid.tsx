@@ -54,7 +54,7 @@ export default function ResourceGrid({ resources, onResetFilters }: ResourceGrid
                   </span>
                 ) : (
                   <span className="bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
-                    ${item.price?.toFixed(2)}
+                    ₦{Number(item.price || 0).toLocaleString()}
                   </span>
                 )}
               </div>
@@ -66,7 +66,7 @@ export default function ResourceGrid({ resources, onResetFilters }: ResourceGrid
               </p>
             </div>
             <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-950 mt-4 group-hover:text-[#3e4095] transition-colors self-start">
-              {item.isFree ? 'Download' : `Buy — $${item.price?.toFixed(2)}`}{' '}
+              {item.isFree ? 'Download' : `Buy — ₦${Number(item.price || 0).toLocaleString()}`}{' '}
               <Download className="w-3 h-3" />
             </span>
           </div>

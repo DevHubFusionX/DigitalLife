@@ -8,10 +8,9 @@ interface LeadsStatsBarProps {
 export default function LeadsStatsBar({ leads }: LeadsStatsBarProps) {
   const paidLeads = leads.filter((l) => l.isPaid);
   const freeLeads = leads.filter((l) => !l.isPaid);
-  const totalRevenueUSD = paidLeads.reduce((acc, l) => acc + (Number(l.amountPaid) || 0), 0);
-  const totalRevenueNGN = Math.round(totalRevenueUSD * 1600);
+  const totalRevenueNGN = paidLeads.reduce((acc, l) => acc + (Number(l.amountPaid) || 0), 0);
   const conversionRate = leads.length > 0 ? Math.round((paidLeads.length / leads.length) * 100) : 0;
-  const aov = paidLeads.length > 0 ? (totalRevenueUSD / paidLeads.length) : 0;
+  const aov = paidLeads.length > 0 ? totalRevenueNGN / paidLeads.length : 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -43,10 +42,10 @@ export default function LeadsStatsBar({ leads }: LeadsStatsBarProps) {
         </div>
         <div>
           <h3 className="text-2xl sm:text-3xl font-black text-slate-950 leading-none">
-            ${totalRevenueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₦{totalRevenueNGN.toLocaleString('en-US')}
           </h3>
           <p className="text-[11px] font-bold text-slate-900/80 mt-1">
-            ₦{totalRevenueNGN.toLocaleString('en-US')} ({paidLeads.length} paid orders)
+            {paidLeads.length} paid order{paidLeads.length === 1 ? '' : 's'} fulfilled
           </p>
         </div>
       </div>
@@ -82,7 +81,7 @@ export default function LeadsStatsBar({ leads }: LeadsStatsBarProps) {
             {conversionRate}%
           </h3>
           <p className="text-[11px] font-semibold text-slate-400 mt-1">
-            Avg order: ${aov.toFixed(2)}
+            Avg order: ₦{Math.round(aov).toLocaleString('en-US')}
           </p>
         </div>
       </div>

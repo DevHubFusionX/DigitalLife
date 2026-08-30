@@ -35,9 +35,8 @@ export default function AdminDashboardPage() {
   const paidLeads = leads.filter((l) => l.isPaid);
   const freeLeads = leads.filter((l) => !l.isPaid);
 
-  // Exact real money totals
-  const totalRevenueUSD = paidLeads.reduce((acc, l) => acc + (Number(l.amountPaid) || 0), 0);
-  const totalRevenueNGN = Math.round(totalRevenueUSD * 1600);
+  // Exact real money totals in Naira
+  const totalRevenueNGN = paidLeads.reduce((acc, l) => acc + (Number(l.amountPaid) || 0), 0);
 
   // Real resources catalog breakdown
   const paidResourcesCount = resources.filter((r) => Number(r.price) > 0).length;
@@ -92,14 +91,14 @@ export default function AdminDashboardPage() {
       success('No leads to export yet.');
       return;
     }
-    const headers = ['Order ID', 'Name', 'Email', 'Resource Title', 'Type', 'Amount ($)', 'Ref', 'Date'];
+    const headers = ['Order ID', 'Name', 'Email', 'Resource Title', 'Type', 'Amount (NGN)', 'Ref', 'Date'];
     const rows = leads.map((lead, idx) => [
       `DIG_${String(idx + 1).padStart(6, '0')}`,
       `"${lead.name.replace(/"/g, '""')}"`,
       `"${lead.email.replace(/"/g, '""')}"`,
       `"${lead.resourceTitle.replace(/"/g, '""')}"`,
       lead.isPaid ? 'PAID' : 'FREE',
-      lead.isPaid ? `$${(lead.amountPaid || 0).toFixed(2)}` : '$0.00',
+      lead.isPaid ? `₦${Number(lead.amountPaid || 0).toLocaleString('en-US')}` : '₦0',
       lead.paymentRef || 'N/A',
       new Date(lead.createdAt).toLocaleString('en-GB'),
     ]);
@@ -148,7 +147,6 @@ export default function AdminDashboardPage() {
         {/* Left Column (~380px on desktop, full width on mobile) */}
         <div className="w-full xl:w-[380px] shrink-0 space-y-6">
           <TotalBalanceCard
-            totalRevenueUSD={totalRevenueUSD}
             totalRevenueNGN={totalRevenueNGN}
             paidOrdersCount={paidLeads.length}
             totalLeadsCount={leads.length}
@@ -172,7 +170,7 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-6">
               <KpiStatsGrid
-                totalRevenueUSD={totalRevenueUSD}
+                totalRevenueNGN={totalRevenueNGN}
                 paidLeadsCount={paidLeads.length}
                 totalLeadsCount={leads.length}
                 freeLeadsCount={freeLeads.length}

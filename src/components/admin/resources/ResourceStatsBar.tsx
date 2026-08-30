@@ -44,7 +44,7 @@ export default function ResourceStatsBar({ resources }: ResourceStatsBarProps) {
             {paidResources.length} Paid
           </h3>
           <p className="text-[11px] font-bold text-slate-900/80 mt-1">
-            ${totalCatalogValue.toFixed(2)} catalog value
+            ₦{totalCatalogValue.toLocaleString('en-US')} catalog value
           </p>
         </div>
       </div>

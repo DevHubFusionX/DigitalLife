@@ -84,16 +84,18 @@ export default function ResourceDetailPage() {
     setIsLoading(true);
 
     try {
-      const usdPrice = resource.price || 0;
-      const conversionRate = 1600;
-      const amountInNGN = Math.round(usdPrice * conversionRate);
-      const amountInKobo = amountInNGN * 100;
-      const ref = `ref_${Math.floor(Math.random() * 1000000000) + 1}`;
+      const priceInNGN = Number(resource.price) || 0;
+      const amountInKobo = Math.round(priceInNGN * 100);
+      const ref = `DIG_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
       const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
 
       if (!paystackKey) {
         throw new Error('Paystack public key is not configured. Please use offline WhatsApp checkout.');
       }
+
+      const nameParts = name.trim().split(' ');
+      const firstname = nameParts[0] || 'Customer';
+      const lastname = nameParts.slice(1).join(' ') || undefined;
 
       await payWithPaystack({
         key: paystackKey,
@@ -101,6 +103,32 @@ export default function ResourceDetailPage() {
         amount: amountInKobo,
         currency: 'NGN',
         ref,
+        firstname,
+        lastname,
+        metadata: {
+          custom_fields: [
+            {
+              display_name: 'Customer Name',
+              variable_name: 'customer_name',
+              value: name.trim(),
+            },
+            {
+              display_name: 'Resource Title',
+              variable_name: 'resource_title',
+              value: resource.title,
+            },
+            {
+              display_name: 'Resource ID',
+              variable_name: 'resource_id',
+              value: resource.id,
+            },
+            {
+              display_name: 'Platform',
+              variable_name: 'platform',
+              value: 'Digitalife Ehub',
+            },
+          ],
+        },
         onSuccess: async (response) => {
           try {
             await addLead({
@@ -109,20 +137,24 @@ export default function ResourceDetailPage() {
               resourceId: resource.id,
               resourceTitle: resource.title,
               isPaid: true,
-              amountPaid: usdPrice,
+              amountPaid: priceInNGN,
               paymentRef: response.reference,
             });
           } catch (err) {
             console.warn('Failed to save payment lead to Firestore:', err);
           }
 
-          await sendResourceDeliveryEmail({
-            name: name.trim(),
-            email: email.trim(),
-            resourceId: resource.id,
-            resourceTitle: resource.title,
-            downloadUrl: resource.downloadUrl,
-          });
+          try {
+            await sendResourceDeliveryEmail({
+              name: name.trim(),
+              email: email.trim(),
+              resourceId: resource.id,
+              resourceTitle: resource.title,
+              downloadUrl: resource.downloadUrl,
+            });
+          } catch (emailErr) {
+            console.warn('Failed to send fulfillment email:', emailErr);
+          }
 
           setFormSubmitted(true);
           setIsLoading(false);

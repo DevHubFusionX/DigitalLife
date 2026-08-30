@@ -1,7 +1,7 @@
 import { DollarSign, Users, Layers, BookOpen } from 'lucide-react';
 
 interface KpiStatsGridProps {
-  totalRevenueUSD: number;
+  totalRevenueNGN: number;
   paidLeadsCount: number;
   totalLeadsCount: number;
   freeLeadsCount: number;
@@ -13,7 +13,7 @@ interface KpiStatsGridProps {
 }
 
 export default function KpiStatsGrid({
-  totalRevenueUSD,
+  totalRevenueNGN,
   paidLeadsCount,
   totalLeadsCount,
   freeLeadsCount,
@@ -35,7 +35,7 @@ export default function KpiStatsGrid({
         </div>
         <div className="my-2">
           <h3 className="text-2xl sm:text-4xl font-black text-slate-950 leading-none tracking-tight">
-            ${totalRevenueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₦{totalRevenueNGN.toLocaleString('en-US')}
           </h3>
         </div>
         <div className="flex items-center gap-1 text-[11px] font-black text-slate-900/90">

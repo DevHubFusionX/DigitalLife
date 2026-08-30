@@ -100,7 +100,7 @@ export default function RecentActivitiesTable({
                     <span className="font-mono text-[11px] font-bold text-slate-900">{orderId}</span>
                     {isPaid ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Paid (${(activity.amountPaid || 0).toFixed(2)})
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Paid (₦{Number(activity.amountPaid || 0).toLocaleString('en-US')})
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#3e4095] bg-[#3e4095]/10 px-2 py-0.5 rounded-full">
@@ -209,7 +209,7 @@ export default function RecentActivitiesTable({
 
                       {/* Price */}
                       <td className="py-4 px-3 font-black text-slate-900">
-                        {isPaid ? `$${(activity.amountPaid || 0).toFixed(2)}` : 'Free'}
+                        {isPaid ? `₦${Number(activity.amountPaid || 0).toLocaleString('en-US')}` : 'Free'}
                       </td>
 
                       {/* Status with colored dot */}

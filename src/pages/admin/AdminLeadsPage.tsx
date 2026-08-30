@@ -68,10 +68,10 @@ export default function AdminLeadsPage() {
       'Email',
       'Resource ID',
       'Resource Title',
-      'Payment Status',
-      'Amount Paid ($)',
-      'Payment Reference',
-      'Captured Date',
+      'Type',
+      'Amount (NGN)',
+      'Reference',
+      'Date Captured',
     ];
 
     const rows = sorted.map((lead, idx) => [
@@ -81,7 +81,7 @@ export default function AdminLeadsPage() {
       `"${lead.resourceId.replace(/"/g, '""')}"`,
       `"${lead.resourceTitle.replace(/"/g, '""')}"`,
       lead.isPaid ? 'PAID' : 'FREE',
-      lead.isPaid ? `$${(lead.amountPaid || 0).toFixed(2)}` : '$0.00',
+      lead.isPaid ? `₦${Number(lead.amountPaid || 0).toLocaleString('en-US')}` : '₦0',
       lead.paymentRef ? `"${lead.paymentRef.replace(/"/g, '""')}"` : 'N/A',
       new Date(lead.createdAt).toLocaleString('en-GB'),
     ]);

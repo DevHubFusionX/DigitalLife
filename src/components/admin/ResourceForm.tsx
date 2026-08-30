@@ -106,7 +106,7 @@ export default function ResourceForm({ editTarget, onClose }: ResourceFormProps)
     try {
       const priceNum = form.isFree ? 0 : Number(form.price);
       if (!form.isFree && (!priceNum || priceNum <= 0)) {
-        throw new Error('Please enter a valid price greater than $0.00 for paid resources.');
+        throw new Error('Please enter a valid price greater than ₦0 for paid resources.');
       }
 
       const payload = {

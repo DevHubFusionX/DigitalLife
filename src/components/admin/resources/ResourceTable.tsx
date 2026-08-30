@@ -43,7 +43,7 @@ export default function ResourceTable({ resources, onEdit, onDelete }: ResourceT
         <tbody className="divide-y divide-slate-100">
           {resources.map((resource) => {
             const isPaid = !resource.isFree && Number(resource.price) > 0;
-            const ngnPrice = isPaid ? Math.round(Number(resource.price) * 1600) : 0;
+            const priceInNGN = isPaid ? Number(resource.price) : 0;
 
             return (
               <tr key={resource.id} className="hover:bg-slate-50/70 transition-colors">
@@ -89,14 +89,9 @@ export default function ResourceTable({ resources, onEdit, onDelete }: ResourceT
                 {/* Price */}
                 <td className="py-3 px-3">
                   {isPaid ? (
-                    <div>
-                      <span className="bg-[#ffd148]/20 text-[#b49200] text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-                        ${Number(resource.price).toFixed(2)}
-                      </span>
-                      <p className="text-[9px] font-semibold text-slate-400 mt-0.5">
-                        ₦{ngnPrice.toLocaleString('en-US')}
-                      </p>
-                    </div>
+                    <span className="bg-[#ffd148]/20 text-[#b49200] text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                      ₦{priceInNGN.toLocaleString('en-US')}
+                    </span>
                   ) : (
                     <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
                       Free

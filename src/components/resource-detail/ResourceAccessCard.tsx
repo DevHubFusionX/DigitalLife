@@ -43,7 +43,7 @@ export default function ResourceAccessCard({
           <div className="flex justify-between items-center text-xs font-semibold">
             <span className="text-slate-400">Access Cost</span>
             <span className="bg-emerald-600 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
-              {resource.isFree ? 'Free' : `$${resource.price?.toFixed(2)}`}
+              {resource.isFree ? 'Free' : `₦${Number(resource.price || 0).toLocaleString()}`}
             </span>
           </div>
           <div className="flex justify-between items-center text-xs font-semibold">
@@ -117,7 +117,7 @@ export default function ResourceAccessCard({
                   </>
                 ) : (
                   <>
-                    Pay &amp; Download (₦{Math.round((resource.price || 0) * 1600).toLocaleString()}){' '}
+                    Pay &amp; Download (₦{Number(resource.price || 0).toLocaleString()}){' '}
                     <CreditCard className="w-4 h-4" />
                   </>
                 )}
@@ -126,7 +126,7 @@ export default function ResourceAccessCard({
               {!resource.isFree && (
                 <div className="pt-2 text-center">
                   <span className="text-[9px] text-slate-400 font-semibold block">
-                    Card payments secured by Paystack (~₦1,600/$).
+                    Card, Bank &amp; Transfer payments secured by Paystack.
                   </span>
                   <div className="relative flex items-center justify-center my-3">
                     <div className="absolute inset-x-0 h-px bg-white/10" />

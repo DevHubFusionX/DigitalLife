@@ -93,7 +93,7 @@ export default function LeadsTable({
         {leads.map((lead, idx) => {
           const isPaid = lead.isPaid;
           const orderRef = `DIG_${String(idx + 1).padStart(6, '0')}`;
-          const ngnPrice = isPaid ? Math.round(Number(lead.amountPaid || 0) * 1600) : 0;
+          const priceInNGN = isPaid ? Number(lead.amountPaid || 0) : 0;
 
           return (
             <div key={lead.id} className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-3">
@@ -101,7 +101,7 @@ export default function LeadsTable({
                 <span className="font-mono text-[11px] font-bold text-slate-900">{orderRef}</span>
                 {isPaid ? (
                   <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> Paid: ${(lead.amountPaid || 0).toFixed(2)} (₦{ngnPrice.toLocaleString('en-US')})
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> Paid: ₦{priceInNGN.toLocaleString('en-US')}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#3e4095] bg-[#3e4095]/10 px-2.5 py-0.5 rounded-full">
@@ -201,7 +201,7 @@ export default function LeadsTable({
               const isSelected = selectedLeadIds.includes(lead.id);
               const orderRef = `DIG_${String(idx + 1).padStart(6, '0')}`;
               const isPaid = lead.isPaid;
-              const ngnPrice = isPaid ? Math.round(Number(lead.amountPaid || 0) * 1600) : 0;
+              const priceInNGN = isPaid ? Number(lead.amountPaid || 0) : 0;
 
               return (
                 <tr key={lead.id} className="hover:bg-slate-50/70 transition-colors">
@@ -246,14 +246,11 @@ export default function LeadsTable({
                     {isPaid ? (
                       <div className="space-y-0.5">
                         <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-block">
-                          Paid: ${(lead.amountPaid || 0).toFixed(2)}
+                          Paid: ₦{priceInNGN.toLocaleString('en-US')}
                         </span>
-                        <p className="text-[9px] font-semibold text-slate-400">
-                          ₦{ngnPrice.toLocaleString('en-US')}
-                        </p>
                         {lead.paymentRef && (
                           <div className="flex items-center gap-1 text-[9px] text-slate-400 font-mono select-all">
-                            <span>Ref: {lead.paymentRef.slice(0, 10)}…</span>
+                            <span>Ref: {lead.paymentRef.slice(0, 12)}…</span>
                             <button
                               onClick={() => handleCopy(lead.paymentRef || '', `ref-${lead.id}`, 'Payment reference copied')}
                               className="p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer border-none bg-transparent"

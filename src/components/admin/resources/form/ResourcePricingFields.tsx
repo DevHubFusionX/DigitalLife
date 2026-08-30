@@ -15,8 +15,6 @@ export default function ResourcePricingFields({
   onPriceChange,
   onFeaturedToggle,
 }: ResourcePricingFieldsProps) {
-  const ngnPriceEstimate = Math.round((Number(price) || 0) * 1600);
-
   return (
     <div className="space-y-4">
       {/* Free vs Paid Toggle */}
@@ -42,26 +40,26 @@ export default function ResourcePricingFields({
         {!isFree && (
           <div className="w-full sm:w-56 shrink-0 space-y-1">
             <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
-              Price (USD)
+              Price (NGN / ₦)
             </label>
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                $
+                ₦
               </span>
               <input
                 required
                 type="number"
-                min="0.50"
-                step="0.01"
+                min="100"
+                step="50"
                 value={price ?? ''}
                 onChange={(e) => onPriceChange(Number(e.target.value))}
-                placeholder="9.99"
-                className="w-full bg-white border border-slate-200/90 rounded-xl pl-7 pr-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-slate-400 transition-colors"
+                placeholder="5000"
+                className="w-full bg-white border border-slate-200/90 rounded-xl pl-8 pr-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-slate-400 transition-colors"
               />
             </div>
             {Number(price) > 0 && (
               <span className="text-[10px] font-bold text-emerald-600 block">
-                ≈ ₦{ngnPriceEstimate.toLocaleString()} via Paystack
+                ₦{Number(price).toLocaleString()} direct Paystack charge
               </span>
             )}
           </div>
