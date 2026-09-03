@@ -20,9 +20,14 @@ export function normalizeResourceDownloadUrl(url?: string | null): string {
     return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
   }
 
-  // For Cloudinary uploads, insert fl_attachment to force Content-Disposition: attachment header
+  // For Cloudinary uploads, insert fl_attachment only for image/video transformations
+  // Raw files (e.g. .docx, .zip, .xlsx under /raw/upload/) do NOT support transformations and return 400
   if (clean.includes('cloudinary.com') && !clean.includes('fl_attachment')) {
-    clean = clean.replace('/upload/', '/upload/fl_attachment/');
+    if (clean.includes('/image/upload/')) {
+      clean = clean.replace('/image/upload/', '/image/upload/fl_attachment/');
+    } else if (clean.includes('/video/upload/')) {
+      clean = clean.replace('/video/upload/', '/video/upload/fl_attachment/');
+    }
   }
 
   return clean;
@@ -37,6 +42,7 @@ export interface DownloadableResource {
   outcomes?: string[] | null;
   description?: string | null;
   downloadUrl?: string | null;
+  youtubeUrl?: string | null;
 }
 
 export async function downloadResourceDocument(
@@ -46,7 +52,16 @@ export async function downloadResourceDocument(
   const cleanTitle = resource.title.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
   const filename = `${cleanTitle}_digitalife_resource`;
 
-  const targetUrl = normalizeResourceDownloadUrl(url);
+  // If downloadUrl is missing but youtubeUrl contains a Google Drive/Docs file link, use that as fallback
+  let effectiveUrl = url;
+  if (!effectiveUrl && resource.youtubeUrl) {
+    const yt = resource.youtubeUrl.trim();
+    if (yt.includes('drive.google.com') || yt.includes('docs.google.com') || yt.includes('cloudinary.com')) {
+      effectiveUrl = yt;
+    }
+  }
+
+  const targetUrl = normalizeResourceDownloadUrl(effectiveUrl);
 
   // If a valid external, Google Drive, or Cloudinary URL exists:
   if (targetUrl) {

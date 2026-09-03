@@ -1,4 +1,8 @@
-import { ShieldCheck, CheckCircle2, AlertTriangle, XCircle, CreditCard, Cloud, Database, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { ShieldCheck, CheckCircle2, AlertTriangle, XCircle, CreditCard, Cloud, Database, Mail, RefreshCw } from 'lucide-react';
+import { useToast } from '../../../hooks/useToast';
+import { updateResource } from '../../../lib/firestore/resources';
+import { CLOUDINARY_MIGRATION_MAP } from '../../../data/cloudinaryMigrationMap';
 
 export default function IntegrationHealthCard() {
   const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
@@ -118,6 +122,61 @@ export default function IntegrationHealthCard() {
           </div>
         </div>
       </div>
+
+      {/* Cloudinary Asset Sync Banner */}
+      <CloudinarySyncAction />
     </div>
   );
 }
+
+function CloudinarySyncAction() {
+  const [syncing, setSyncing] = useState(false);
+  const [synced, setSynced] = useState(false);
+  const { success, error: toastError } = useToast();
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      for (const item of CLOUDINARY_MIGRATION_MAP) {
+        const payload: Record<string, unknown> = {
+          coverImage: item.coverImage,
+          coverUrl: item.coverImage,
+        };
+        if (item.downloadUrl) {
+          payload.downloadUrl = item.downloadUrl;
+        }
+        await updateResource(item.id, payload);
+      }
+      setSynced(true);
+      success('All 16 resource covers and document URLs updated in Firestore!');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Failed to update Firestore');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100/80">
+      <div>
+        <div className="flex items-center gap-1.5">
+          <RefreshCw className={`w-3.5 h-3.5 text-[#3e4095] ${syncing ? 'animate-spin' : ''}`} />
+          <h3 className="text-xs font-black text-slate-950">Cloudinary Migration Sync</h3>
+        </div>
+        <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+          Update all 16 catalog resource covers and workbook PDF download URLs in Firestore to your new Cloudinary account (degktbk01).
+        </p>
+      </div>
+
+      <button
+        type="button"
+        disabled={syncing || synced}
+        onClick={handleSync}
+        className="px-4 py-2.5 bg-[#3e4095] hover:bg-[#2d2f75] disabled:bg-emerald-600 text-white font-bold rounded-xl text-xs transition-all whitespace-nowrap cursor-pointer border-none shadow-xs shrink-0"
+      >
+        {synced ? '✓ Assets Synced' : syncing ? 'Syncing to Database…' : 'Sync New Asset URLs to Database'}
+      </button>
+    </div>
+  );
+}
+
