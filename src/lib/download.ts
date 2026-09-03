@@ -71,8 +71,8 @@ export async function downloadResourceDocument(
       return;
     }
 
+    // Strategy 1: Attempt blob fetch for same-origin or CORS-enabled URLs
     try {
-      // Attempt blob fetch to guarantee local file save on desktop & mobile
       const res = await fetch(targetUrl, { mode: 'cors' });
       if (res.ok) {
         const blob = await res.blob();
@@ -87,18 +87,30 @@ export async function downloadResourceDocument(
         return;
       }
     } catch {
-      // Fallback if CORS prevents direct blob fetch
+      // CORS blocked — expected for Google Drive & Cloudinary cross-origin URLs
     }
 
-    // Direct browser navigation / anchor trigger
-    const link = document.createElement('a');
-    link.href = targetUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Strategy 2: Direct navigation for URLs that serve Content-Disposition: attachment
+    // Google Drive uc?export=download and Cloudinary fl_attachment both handle this server-side
+    const isGoogleDrive = targetUrl.includes('drive.google.com');
+    const isCloudinaryAttachment = targetUrl.includes('cloudinary.com') && targetUrl.includes('fl_attachment');
+    const isDirectDownload = isGoogleDrive || isCloudinaryAttachment;
+
+    if (isDirectDownload) {
+      // Use a hidden iframe to trigger the download without navigating away from the page
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = targetUrl;
+      document.body.appendChild(iframe);
+      // Clean up after a reasonable delay for the download to initiate
+      setTimeout(() => {
+        try { document.body.removeChild(iframe); } catch { /* already removed */ }
+      }, 10000);
+      return;
+    }
+
+    // Strategy 3: Fallback — open in new tab for any other URL
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
     return;
   }
 

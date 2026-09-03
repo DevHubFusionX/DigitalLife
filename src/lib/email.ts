@@ -1,6 +1,7 @@
 export interface SendResourceEmailParams {
   name: string;
   email: string;
+  phone?: string;
   resourceId: string;
   resourceTitle: string;
   downloadUrl?: string | null;
@@ -26,6 +27,7 @@ export async function sendResourceDeliveryEmail(
       body: JSON.stringify({
         name: params.name.trim(),
         email: params.email.trim(),
+        phone: params.phone?.trim() || '',
         resourceId: params.resourceId,
         resourceTitle: params.resourceTitle,
         downloadUrl: params.downloadUrl || '',

@@ -23,6 +23,7 @@ export default function ResourceDetailPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
 
   const resource = resources.find((r) => r.id === id) ?? resources[0];
@@ -49,13 +50,16 @@ export default function ResourceDetailPage() {
     setIsLoading(true);
 
     try {
-      // 1. Trigger the direct document download to the user's device immediately
-      await downloadResourceDocument(resource.downloadUrl, resource);
+      // 1. Trigger the direct document download (fire-and-forget so lead & email always proceed)
+      downloadResourceDocument(resource.downloadUrl, resource).catch((err) =>
+        console.warn('Download trigger notification:', err)
+      );
 
       // 2. Save lead record in Firestore CRM
       await addLead({
         name: name.trim(),
         email: email.trim(),
+        phone: phone.trim(),
         resourceId: resource.id,
         resourceTitle: resource.title,
       });
@@ -64,6 +68,7 @@ export default function ResourceDetailPage() {
       await sendResourceDeliveryEmail({
         name: name.trim(),
         email: email.trim(),
+        phone: phone.trim(),
         resourceId: resource.id,
         resourceTitle: resource.title,
         downloadUrl: resource.downloadUrl,
@@ -80,7 +85,7 @@ export default function ResourceDetailPage() {
 
   const handlePaidUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name || !resource) return;
+    if (!email || !name || !phone || !resource) return;
     setIsLoading(true);
 
     try {
@@ -113,6 +118,11 @@ export default function ResourceDetailPage() {
               value: name.trim(),
             },
             {
+              display_name: 'Phone Number',
+              variable_name: 'phone_number',
+              value: phone.trim(),
+            },
+            {
               display_name: 'Resource Title',
               variable_name: 'resource_title',
               value: resource.title,
@@ -134,6 +144,7 @@ export default function ResourceDetailPage() {
             await addLead({
               name: name.trim(),
               email: email.trim(),
+              phone: phone.trim(),
               resourceId: resource.id,
               resourceTitle: resource.title,
               isPaid: true,
@@ -148,6 +159,7 @@ export default function ResourceDetailPage() {
             await sendResourceDeliveryEmail({
               name: name.trim(),
               email: email.trim(),
+              phone: phone.trim(),
               resourceId: resource.id,
               resourceTitle: resource.title,
               downloadUrl: resource.downloadUrl,
@@ -215,6 +227,8 @@ export default function ResourceDetailPage() {
             setName={setName}
             email={email}
             setEmail={setEmail}
+            phone={phone}
+            setPhone={setPhone}
             isLoading={isLoading}
             formSubmitted={formSubmitted}
             onUnlock={handleUnlock}

@@ -1,4 +1,4 @@
-import { Check, Download, CreditCard, User, Mail, Loader2, ArrowRight, CheckCircle2, FileText, MessageCircle } from 'lucide-react';
+import { Check, Download, CreditCard, User, Mail, Phone, Loader2, ArrowRight, CheckCircle2, FileText, MessageCircle } from 'lucide-react';
 import type { Resource } from '../../types/resource';
 import { openWhatsApp } from '../../lib/whatsapp';
 
@@ -8,6 +8,8 @@ interface ResourceAccessCardProps {
   setName: (val: string) => void;
   email: string;
   setEmail: (val: string) => void;
+  phone: string;
+  setPhone: (val: string) => void;
   isLoading: boolean;
   formSubmitted: boolean;
   onUnlock: (e: React.FormEvent) => void;
@@ -21,6 +23,8 @@ export default function ResourceAccessCard({
   setName,
   email,
   setEmail,
+  phone,
+  setPhone,
   isLoading,
   formSubmitted,
   onUnlock,
@@ -99,6 +103,23 @@ export default function ResourceAccessCard({
                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
                   />
                   <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    placeholder="+234 800 000 0000"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-xs font-semibold text-white focus:outline-none focus:border-[#ffd148] transition-colors"
+                  />
+                  <Phone className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
                 </div>
               </div>
 

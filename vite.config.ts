@@ -20,6 +20,7 @@ function resendDevApiPlugin(env: Record<string, string>): Plugin {
               const {
                 email,
                 name = 'Customer',
+                phone = '',
                 resourceId,
                 resourceTitle: reqTitle,
                 downloadUrl: reqUrl,
@@ -120,7 +121,10 @@ function resendDevApiPlugin(env: Record<string, string>): Plugin {
                     <p style="font-size: 14px; font-weight: 600; color: #334155; line-height: 1.6; margin: 0 0 16px 0;">Hi ${name},</p>
                     <p style="font-size: 14px; font-weight: 500; color: #475569; line-height: 1.6; margin: 0 0 24px 0;">
                       Thank you for unlocking <strong>${title}</strong>. We are thrilled to support your business journey with actionable frameworks and systems. Click the button below to download your resource:
-                    </p>
+                    </p>${phone ? `
+                    <p style="font-size: 12px; font-weight: 500; color: #64748b; line-height: 1.6; margin: 0 0 16px 0;">
+                      📱 Phone on file: <strong>${phone}</strong>
+                    </p>` : ''}
                     <div style="margin: 32px 0; text-align: center;">
                       <a href="${validDownloadUrl}" target="_blank" rel="noopener noreferrer" style="background-color: #ffd148; color: #0f172a; padding: 14px 32px; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; border-radius: 9999px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);">
                         Download Resource Now

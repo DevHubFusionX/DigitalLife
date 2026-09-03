@@ -30,6 +30,7 @@ export function subscribeToLeads(
           id: d.id,
           name: data.name || '',
           email: data.email || '',
+          phone: data.phone || '',
           resourceId: data.resourceId || '',
           resourceTitle: data.resourceTitle || '',
           createdAt: toIsoTimestamp(data.createdAt),

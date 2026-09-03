@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, FileText, Calendar, Copy, Check, Mail, MessageSquare, Inbox, ShieldCheck, Send, Loader2 } from 'lucide-react';
+import { User, FileText, Calendar, Copy, Check, Mail, Phone, MessageSquare, Inbox, ShieldCheck, Send, Loader2 } from 'lucide-react';
 import type { Lead } from '../../../types/lead';
 import { useToast } from '../../../hooks/useToast';
 import { sendResourceDeliveryEmail } from '../../../lib/email';
@@ -121,6 +121,18 @@ export default function LeadsTable({
                     {copiedId === `m-email-${lead.id}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                   </button>
                 </div>
+                {lead.phone && (
+                  <div className="flex items-center gap-1 text-[11px] text-slate-500 font-mono mt-0.5">
+                    <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span className="truncate">{lead.phone}</span>
+                    <button
+                      onClick={() => handleCopy(lead.phone || '', `m-phone-${lead.id}`, 'Phone copied')}
+                      className="p-1 text-slate-400 hover:text-slate-700 border-none bg-transparent cursor-pointer"
+                    >
+                      {copiedId === `m-phone-${lead.id}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="p-2.5 rounded-xl bg-white border border-slate-200/60">
@@ -155,7 +167,7 @@ export default function LeadsTable({
                     <Mail className="w-3 h-3" /> Email
                   </a>
                   <a
-                    href={`https://wa.me/?text=${encodeURIComponent(`Hi ${lead.name}, thank you for unlocking "${lead.resourceTitle}" on Digitalife. How can our consulting team assist your business further?`)}`}
+                    href={lead.phone ? `https://wa.me/${lead.phone.replace(/[^0-9+]/g, '')}?text=${encodeURIComponent(`Hi ${lead.name}, thank you for unlocking "${lead.resourceTitle}" on Digitalife. How can our consulting team assist your business further?`)}` : `https://wa.me/?text=${encodeURIComponent(`Hi ${lead.name}, thank you for unlocking "${lead.resourceTitle}" on Digitalife. How can our consulting team assist your business further?`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold"
@@ -233,6 +245,19 @@ export default function LeadsTable({
                         {copiedId === `email-${lead.id}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                       </button>
                     </div>
+                    {lead.phone && (
+                      <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono mt-0.5 select-all">
+                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span>{lead.phone}</span>
+                        <button
+                          onClick={() => handleCopy(lead.phone || '', `phone-${lead.id}`, 'Phone copied')}
+                          className="p-1 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer border-none bg-transparent"
+                          title="Copy phone"
+                        >
+                          {copiedId === `phone-${lead.id}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    )}
                   </td>
 
                   {/* Unlocked Asset */}
@@ -308,7 +333,9 @@ export default function LeadsTable({
                         <Mail className="w-3.5 h-3.5" />
                       </a>
                       <a
-                        href={`https://wa.me/?text=${encodeURIComponent(
+                        href={lead.phone ? `https://wa.me/${lead.phone.replace(/[^0-9+]/g, '')}?text=${encodeURIComponent(
+                          `Hi ${lead.name}, thank you for unlocking "${lead.resourceTitle}" on Digitalife. How can our consulting team assist your business further?`
+                        )}` : `https://wa.me/?text=${encodeURIComponent(
                           `Hi ${lead.name}, thank you for unlocking "${lead.resourceTitle}" on Digitalife. How can our consulting team assist your business further?`
                         )}`}
                         target="_blank"
